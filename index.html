@@ -779,3 +779,292 @@ document.getElementById('accSettingsBtn').onclick = () => { const np = prompt('N
 </script>
 </body>
 </html>
+// ========== ENHANCED PHONE VERIFICATION ==========
+
+// Global variables
+let countdownTimer = null;
+let currentCode = null;
+let phoneVerified = currentUser?.phoneVerified || false;
+
+// Update the phone verification UI in settings
+function renderPhoneVerificationUI() {
+  const phoneInput = document.getElementById('phoneInput');
+  const verifySection = document.getElementById('verifyPhoneSection');
+  
+  if (!verifySection) return;
+  
+  if (currentUser?.phoneVerified) {
+    verifySection.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: #e8f5e9; border-radius: 12px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">✅</span>
+          <div>
+            <div style="font-weight: 600;">Phone Verified</div>
+            <div style="font-size: 12px; color: #2e7d32;">${currentUser.phone || 'Number saved'}</div>
+          </div>
+        </div>
+        <button id="changePhoneBtn" style="background: none; border: none; color: #3B82F6; cursor: pointer;">Change</button>
+      </div>
+    `;
+    const changeBtn = document.getElementById('changePhoneBtn');
+    if (changeBtn) changeBtn.onclick = () => resetPhoneVerification();
+  } else {
+    verifySection.innerHTML = `
+      <div style="padding: 16px; background: #fff3e0; border-radius: 12px; margin-bottom: 10px;">
+        <div style="font-weight: 600; margin-bottom: 8px;">📱 Verify Your Phone Number</div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 12px;">Get verified to help friends find you</div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="tel" id="verifyPhoneInput" placeholder="+1234567890" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px;" value="${currentUser?.phone || ''}">
+          <button id="sendCodeBtn" style="background: #8B5A2B; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Send Code</button>
+        </div>
+        <div id="codeSection" style="display: none; margin-top: 12px;">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 18px; letter-spacing: 4px;">
+            <button id="verifyCodeBtn" style="background: #3B82F6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Verify</button>
+          </div>
+          <div id="timerDisplay" style="font-size: 12px; color: #666; text-align: center; margin-top: 8px;"></div>
+          <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <button id="copyCodeBtn" style="background: none; border: none; color: #3B82F6; font-size: 12px; cursor: pointer;">📋 Copy Code</button>
+            <button id="resendCodeBtn" style="background: none; border: none; color: #3B82F6; font-size: 12px; cursor: pointer;" disabled>Resend (60s)</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Attach event listeners
+    document.getElementById('sendCodeBtn')?.addEventListener('click', sendVerificationCode);
+    document.getElementById('verifyCodeBtn')?.addEventListener('click', verifyCode);
+    document.getElementById('copyCodeBtn')?.addEventListener('click', copyCodeToClipboard);
+    document.getElementById('resendCodeBtn')?.addEventListener('click', resendCode);
+  }
+}
+
+// Send verification code (instant generation, opens SMS)
+function sendVerificationCode() {
+  const phoneInput = document.getElementById('verifyPhoneInput');
+  const phone = phoneInput?.value.trim();
+  
+  if (!phone || phone.length < 10) {
+    alert('Please enter a valid phone number with country code (e.g., +27721234567)');
+    return;
+  }
+  
+  // Save phone to user profile
+  db.ref(`users/${currentUser.uid}/phone`).set(phone);
+  currentUser.phone = phone;
+  
+  // Generate 6-digit code
+  currentCode = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Store in localStorage with expiration (5 minutes)
+  const codeData = {
+    code: currentCode,
+    phone: phone,
+    expiresAt: Date.now() + 5 * 60 * 1000,
+    attempts: 0
+  };
+  localStorage.setItem('pendingVerification', JSON.stringify(codeData));
+  
+  // Show code section
+  const codeSection = document.getElementById('codeSection');
+  if (codeSection) codeSection.style.display = 'block';
+  
+  // Open SMS app with pre-filled message (INSTANT)
+  const smsMessage = `JUSTUS verification code: ${currentCode}`;
+  const smsUrl = `sms:${phone}?body=${encodeURIComponent(smsMessage)}`;
+  window.location.href = smsUrl;
+  
+  // Start countdown timer
+  startCountdown(60);
+  
+  // Also show code in a popup for convenience (copy-paste if SMS is slow)
+  setTimeout(() => {
+    if (!document.getElementById('verificationCode')?.value) {
+      const copyConfirm = confirm(`Code: ${currentCode}\n\nDidn't receive SMS? Tap OK to copy code to clipboard and paste manually.`);
+      if (copyConfirm) {
+        copyToClipboard(currentCode);
+        alert('Code copied to clipboard! Paste it above.');
+      }
+    }
+  }, 3000);
+  
+  alert(`📱 SMS opened!\n\nCode: ${currentCode}\n\nIf SMS takes too long, you can copy the code manually.`);
+}
+
+// Auto-detect incoming SMS (if browser supports)
+async function setupSMSAutoDetection() {
+  if ('SmsReceiver' in window) {
+    try {
+      const sms = await navigator.sms?.receive();
+      const codeMatch = sms.body.match(/\b\d{6}\b/);
+      if (codeMatch && document.getElementById('verificationCode')) {
+        document.getElementById('verificationCode').value = codeMatch[0];
+        verifyCode();
+      }
+    } catch(e) { console.log('SMS auto-detect not available'); }
+  }
+}
+
+// Start countdown timer for resend
+function startCountdown(seconds) {
+  const resendBtn = document.getElementById('resendCodeBtn');
+  const timerDisplay = document.getElementById('timerDisplay');
+  let remaining = seconds;
+  
+  if (countdownTimer) clearInterval(countdownTimer);
+  
+  if (resendBtn) resendBtn.disabled = true;
+  
+  countdownTimer = setInterval(() => {
+    remaining--;
+    if (timerDisplay) {
+      timerDisplay.textContent = `⏱️ Resend available in ${remaining}s`;
+    }
+    if (remaining <= 0) {
+      clearInterval(countdownTimer);
+      if (resendBtn) {
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend Code';
+      }
+      if (timerDisplay) timerDisplay.textContent = '';
+    }
+  }, 1000);
+}
+
+// Resend code
+function resendCode() {
+  const phone = document.getElementById('verifyPhoneInput')?.value.trim() || currentUser?.phone;
+  if (!phone) return;
+  
+  // Generate new code
+  currentCode = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Update stored code
+  const codeData = {
+    code: currentCode,
+    phone: phone,
+    expiresAt: Date.now() + 5 * 60 * 1000,
+    attempts: 0
+  };
+  localStorage.setItem('pendingVerification', JSON.stringify(codeData));
+  
+  // Open SMS app
+  const smsMessage = `JUSTUS verification code: ${currentCode}`;
+  const smsUrl = `sms:${phone}?body=${encodeURIComponent(smsMessage)}`;
+  window.location.href = smsUrl;
+  
+  // Restart countdown
+  startCountdown(60);
+  
+  alert(`📱 New code sent: ${currentCode}\n\nIf SMS doesn't arrive, you can copy this code.`);
+}
+
+// Copy code to clipboard
+function copyCodeToClipboard() {
+  const codeInput = document.getElementById('verificationCode');
+  const code = codeInput?.value || currentCode;
+  if (code) {
+    copyToClipboard(code);
+    alert('✅ Code copied to clipboard!');
+  } else if (currentCode) {
+    copyToClipboard(currentCode);
+    alert('✅ Code copied to clipboard!');
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  });
+}
+
+// Verify the code
+async function verifyCode() {
+  const codeInput = document.getElementById('verificationCode');
+  const enteredCode = codeInput?.value.trim();
+  
+  if (!enteredCode) {
+    alert('Please enter the verification code');
+    return;
+  }
+  
+  // Check stored code
+  const storedData = localStorage.getItem('pendingVerification');
+  if (!storedData) {
+    alert('No verification in progress. Please request a new code.');
+    return;
+  }
+  
+  const { code, phone, expiresAt, attempts } = JSON.parse(storedData);
+  
+  if (Date.now() > expiresAt) {
+    alert('Code has expired. Please request a new one.');
+    localStorage.removeItem('pendingVerification');
+    return;
+  }
+  
+  if (enteredCode !== code) {
+    const newAttempts = (attempts || 0) + 1;
+    if (newAttempts >= 5) {
+      alert('Too many failed attempts. Please request a new code.');
+      localStorage.removeItem('pendingVerification');
+      document.getElementById('codeSection').style.display = 'none';
+    } else {
+      localStorage.setItem('pendingVerification', JSON.stringify({ code, phone, expiresAt, attempts: newAttempts }));
+      alert(`Invalid code. ${5 - newAttempts} attempts remaining.`);
+    }
+    return;
+  }
+  
+  // Code verified!
+  await db.ref(`users/${currentUser.uid}/phoneVerified`).set(true);
+  await db.ref(`users/${currentUser.uid}/phone`).set(phone);
+  currentUser.phoneVerified = true;
+  currentUser.phone = phone;
+  
+  localStorage.removeItem('pendingVerification');
+  if (countdownTimer) clearInterval(countdownTimer);
+  
+  alert('✅ Phone number verified successfully!');
+  renderPhoneVerificationUI();
+  updatePhoneStatusDisplay();
+}
+
+// Reset phone verification (change number)
+function resetPhoneVerification() {
+  db.ref(`users/${currentUser.uid}/phoneVerified`).set(false);
+  currentUser.phoneVerified = false;
+  renderPhoneVerificationUI();
+  updatePhoneStatusDisplay();
+}
+
+// Update phone status display in settings row
+function updatePhoneStatusDisplay() {
+  const statusSpan = document.getElementById('phoneVerifyStatus');
+  if (statusSpan) {
+    if (currentUser?.phoneVerified) {
+      statusSpan.innerHTML = '✅ Verified';
+      statusSpan.style.color = '#4caf50';
+    } else {
+      statusSpan.innerHTML = '❌ Not verified';
+      statusSpan.style.color = '#f44336';
+    }
+  }
+}
+
+// Initialize phone verification UI when settings screen opens
+const originalShowScreen = showScreen;
+window.showScreen = function(screen) {
+  originalShowScreen(screen);
+  if (screen === 'settings') {
+    setTimeout(() => {
+      renderPhoneVerificationUI();
+      setupSMSAutoDetection();
+    }, 100);
+  }
+};
