@@ -3,1310 +3,1075 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>JUSTUS • Private Chat</title>
+<title>JUSTUS</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Light Theme (Default) */
-body {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --bg-tertiary: #e8e8e8;
-  --text-primary: #111111;
-  --text-secondary: #666666;
-  --text-muted: #999999;
-  --border: #e0e0e0;
-  --accent: #888888;
-  --accent-dark: #666666;
-  --sent-msg: #DCF8C6;
-  --received-msg: #ffffff;
-  --header-bg: #075E54;
-  --header-text: white;
-}
-
-body.dark {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2a2a2a;
-  --bg-tertiary: #333333;
-  --text-primary: #ffffff;
-  --text-secondary: #bbbbbb;
-  --text-muted: #888888;
-  --border: #444444;
-  --accent: #888888;
-  --sent-msg: #075E54;
-  --received-msg: #2a2a2a;
-  --header-bg: #111111;
-}
-
-body.oled {
-  --bg-primary: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-tertiary: #111111;
-  --text-primary: #ffffff;
-  --text-secondary: #aaaaaa;
-  --text-muted: #666666;
-  --border: #222222;
-  --accent: #888888;
-  --sent-msg: #075E54;
-  --received-msg: #111111;
-  --header-bg: #000000;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-  transition: background 0.2s;
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100%;
-}
-
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* Screens */
-.screen-chats, .screen-chat, .screen-updates, .screen-communities, .screen-calls, .screen-settings, .screen-profile, .screen-help {
-  display: none;
-  flex-direction: column;
-  height: 100%;
-}
-
-.screen-chats.show, .screen-chat.show, .screen-updates.show, 
-.screen-communities.show, .screen-calls.show, .screen-settings.show, .screen-profile.show, .screen-help.show {
-  display: flex;
-}
-
-/* Header */
-.header {
-  padding: 16px;
-  background: var(--header-bg);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.logo {
-  text-align: center;
-}
-
-.logo h1 {
-  font-size: 28px;
-  font-weight: 900;
-  color: var(--header-text);
-  letter-spacing: -0.5px;
-  text-transform: uppercase;
-}
-
-.logo span {
-  font-size: 8px;
-  color: rgba(255,255,255,0.7);
-  display: block;
-}
-
-.menu-btn {
-  position: absolute;
-  right: 16px;
-  background: none;
-  border: none;
-  color: var(--header-text);
-  font-size: 24px;
-  cursor: pointer;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-}
-
-/* Chat Header */
-.chat-header, .profile-header {
-  padding: 12px 16px;
-  background: var(--header-bg);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.back-btn {
-  background: none;
-  border: none;
-  color: var(--header-text);
-  font-size: 28px;
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-}
-
-.chat-header-avatar, .chat-avatar-img {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #888, #666);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: white;
-  flex-shrink: 0;
-}
-
-.chat-header-info {
-  flex: 1;
-}
-
-.chat-header-name {
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--header-text);
-}
-
-.chat-header-status {
-  font-size: 11px;
-  color: rgba(255,255,255,0.7);
-}
-
-/* Chat List */
-.chat-list {
-  flex: 1;
-}
-
-.chat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-primary);
-}
-
-.chat-item:active {
-  background: var(--bg-secondary);
-}
-
-.chat-avatar-img {
-  width: 50px;
-  height: 50px;
-  font-size: 20px;
-}
-
-.chat-info {
-  flex: 1;
-}
-
-.chat-name {
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.chat-preview {
-  font-size: 13px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.chat-meta {
-  text-align: right;
-}
-
-.chat-time {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.unread-badge {
-  background: var(--accent);
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 5px;
-  margin-top: 4px;
-}
-
-/* Messages - WhatsApp Bubble Style */
-.messages-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #e5ddd5;
-}
-
-.message {
-  display: flex;
-  max-width: 80%;
-}
-
-.message.sent {
-  align-self: flex-end;
-}
-
-.message.received {
-  align-self: flex-start;
-}
-
-.message-bubble {
-  padding: 8px 12px;
-  border-radius: 18px;
-  font-size: 14px;
-  position: relative;
-  word-wrap: break-word;
-}
-
-.message.sent .message-bubble {
-  background: #dcf8c6;
-  border-bottom-right-radius: 4px;
-}
-
-.message.received .message-bubble {
-  background: white;
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-}
-
-.message-meta {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 2px;
-  font-size: 10px;
-  opacity: 0.7;
-  gap: 4px;
-}
-
-.date-divider {
-  text-align: center;
-  margin: 16px 0;
-}
-
-.date-divider span {
-  background: rgba(0,0,0,0.1);
-  padding: 4px 12px;
-  font-size: 11px;
-  border-radius: 20px;
-  color: #666;
-}
-
-/* Input Area */
-.input-area {
-  padding: 10px 16px;
-  background: var(--bg-primary);
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.message-input {
-  flex: 1;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 10px 16px;
-  outline: none;
-  font-size: 14px;
-  color: var(--text-primary);
-  resize: none;
-  font-family: inherit;
-}
-
-.send-btn {
-  background: var(--accent);
-  border: none;
-  color: white;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-/* Profile Screen */
-.profile-avatar-large {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #888, #666);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48px;
-  font-weight: bold;
-  color: white;
-  margin: 30px auto 20px;
-}
-
-.profile-name {
-  text-align: center;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.profile-status {
-  text-align: center;
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 30px;
-}
-
-.profile-section {
-  padding: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.profile-section-title {
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
-
-.profile-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 0;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-}
-
-.profile-item-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.profile-item-icon {
-  font-size: 20px;
-  width: 32px;
-}
-
-.profile-item-label {
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.toggle-switch {
-  width: 44px;
-  height: 24px;
-  background: var(--border);
-  border-radius: 24px;
-  position: relative;
-  cursor: pointer;
-}
-
-.toggle-switch.active {
-  background: var(--accent);
-}
-
-.toggle-switch::after {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 50%;
-  top: 2px;
-  left: 2px;
-  transition: left 0.2s;
-}
-
-.toggle-switch.active::after {
-  left: 22px;
-}
-
-.danger-text {
-  color: #EF4444;
-}
-
-/* Status & Calls */
-.status-list, .call-list, .settings-list {
-  padding: 16px;
-}
-
-.status-card, .call-item {
-  background: var(--bg-secondary);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--border);
-}
-
-.status-avatar-small, .call-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #888, #666);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: white;
-}
-
-.status-info, .call-info {
-  flex: 1;
-}
-
-.status-name, .call-name {
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.status-text {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 4px;
-}
-
-.status-time, .call-type {
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.add-status-btn, .call-btn, .settings-save-btn {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 30px;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 16px;
-  cursor: pointer;
-}
-
-.call-btn {
-  margin: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  padding: 0;
-}
-
-.settings-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.settings-item select, .settings-item input {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-/* Help Screen */
-.help-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 16px;
-}
-
-.help-intro {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-  line-height: 1.5;
-}
-
-.help-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-.help-table thead tr {
-  background: var(--header-bg);
-}
-
-.help-table thead th {
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 12px 14px;
-  text-align: left;
-}
-
-.help-table tbody tr {
-  border-bottom: 1px solid var(--border);
-}
-
-.help-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.help-table tbody tr:nth-child(even) {
-  background: var(--bg-secondary);
-}
-
-.help-table tbody tr:nth-child(odd) {
-  background: var(--bg-primary);
-}
-
-.help-table td {
-  padding: 13px 14px;
-  font-size: 13px;
-  vertical-align: top;
-  line-height: 1.45;
-}
-
-.help-table td:first-child {
-  font-weight: 700;
-  color: var(--text-primary);
-  width: 38%;
-  white-space: nowrap;
-}
-
-.help-table td:last-child {
-  color: var(--text-secondary);
-}
-
-.help-tip {
-  margin-top: 20px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-left: 3px solid #075E54;
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.help-tip strong {
-  color: var(--text-primary);
-  display: block;
-  margin-bottom: 4px;
-  font-size: 12px;
-}
-
-/* Bottom Nav */
-.bottom-nav {
-  background: var(--bg-primary);
-  border-top: 1px solid var(--border);
-  display: flex;
-  padding: 8px 12px;
-  flex-shrink: 0;
-}
-
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 0;
-  cursor: pointer;
-}
-
-.nav-icon {
-  font-size: 22px;
-  color: #999;
-}
-
-.nav-label {
-  font-size: 10px;
-  color: #999;
-}
-
-.nav-item.active .nav-icon {
-  color: var(--accent);
-}
-
-.nav-item.active .nav-label {
-  color: var(--accent);
-}
-
-/* Dropdown */
-.dropdown-menu {
-  position: fixed;
-  top: 60px;
-  right: 16px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  width: 200px;
-  z-index: 200;
-  display: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.dropdown-menu.show {
-  display: block;
-}
-
-.dropdown-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-}
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-/* Modal */
-.status-modal {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--bg-primary);
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  padding: 20px;
-  z-index: 200;
-  transform: translateY(100%);
-  transition: transform 0.3s;
-}
-
-.status-modal.open {
-  transform: translateY(0);
-}
-
-.status-modal textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin: 12px 0;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-family: inherit;
-  resize: vertical;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.modal-buttons button {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.modal-save {
-  background: var(--accent);
-  color: white;
-}
-
-.modal-cancel {
-  background: var(--bg-secondary);
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 99;
-  display: none;
-}
-
-.overlay.show {
-  display: block;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  --bg:#fff;--bg2:#f5f5f5;--bg3:#e8e8e8;--text:#111;--text2:#666;--muted:#999;
+  --border:#e8e8f0;--green:#075E54;--green2:#25D366;--sent:#EDE9FE;--recv:#fff;
+  --header:#fff;--wall:#F3F2F8;--fs:14px;--purple:#6C5CE7;--purple2:#8B7CF6;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);
+  height:100vh;width:100vw;overflow:hidden;position:fixed;top:0;left:0;
+}
+body.dark{--bg:#1a1a1a;--bg2:#2a2a2a;--bg3:#333;--text:#fff;--text2:#bbb;--muted:#888;--border:#333;--sent:#4C3D8F;--recv:#2a2a2a;--header:#1a1a1a;--wall:#111827;}
+body.oled{--bg:#000;--bg2:#0a0a0a;--bg3:#111;--text:#fff;--text2:#aaa;--muted:#666;--border:#222;--sent:#3B2F6E;--recv:#111;--header:#000;--wall:#0a0a0a;}
+
+.app{display:flex;flex-direction:column;height:100vh;}
+.content{flex:1;overflow-y:auto;position:relative;}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;height:100%;position:absolute;width:100%;top:0;left:0;background:var(--bg);}
+.screen.show{display:flex;}
+
+/* LOGIN */
+#sLogin{background:#075E54;align-items:center;justify-content:center;padding:30px 20px;z-index:999;}
+.login-logo{text-align:center;margin-bottom:36px;}
+.login-logo h1{font-size:44px;font-weight:900;color:#fff;letter-spacing:-1px;}
+.login-logo p{font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;}
+.login-card{background:#fff;border-radius:24px;padding:26px 22px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.2);}
+.tabs{display:flex;background:#f5f5f5;border-radius:12px;padding:4px;margin-bottom:22px;gap:4px;}
+.tab{flex:1;padding:9px;border-radius:9px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:transparent;color:#666;font-family:inherit;}
+.tab.on{background:#fff;color:#075E54;box-shadow:0 1px 4px rgba(0,0,0,0.12);}
+.field{margin-bottom:13px;}
+.field label{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;}
+.field input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid #e0e0e0;font-size:15px;outline:none;font-family:inherit;color:#111;}
+.field input:focus{border-color:#075E54;}
+.lbtn{width:100%;padding:14px;border-radius:14px;background:#075E54;color:#fff;border:none;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
+.lerr{color:#e74c3c;font-size:13px;text-align:center;margin-top:8px;min-height:16px;}
+
+/* HEADER */
+.hdr{padding:12px 16px;background:var(--header);display:flex;align-items:center;gap:10px;flex-shrink:0;position:relative;}
+.hdr-logo{flex:1;text-align:center;}
+.hdr-logo h1{font-size:26px;font-weight:900;color:#fff;text-transform:uppercase;}
+.hdr-logo small{font-size:8px;color:rgba(255,255,255,0.6);display:block;}
+.hdr-back{background:none;border:none;color:#fff;font-size:28px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
+.hdr-title{flex:1;font-size:17px;font-weight:700;color:#fff;}
+.hdr-menu{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;}
+.hdr-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#d4ede0,#aed5be);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#3d7a55;cursor:pointer;flex-shrink:0;}
+.hdr-info{flex:1;cursor:pointer;}
+.hdr-name{font-weight:600;font-size:16px;color:#fff;}
+.hdr-status{font-size:11px;color:rgba(255,255,255,0.7);}
+
+/* DROPDOWN */
+.drop{position:fixed;top:62px;right:12px;background:var(--bg);border:1px solid var(--border);border-radius:16px;width:185px;z-index:500;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.15);}
+.drop.show{display:block;}
+.drop-item{padding:13px 16px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border);}
+.drop-item:last-child{border-bottom:none;}
+.drop-item:active{background:var(--bg2);}
+
+/* CHAT LIST */
+.chat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg);}
+.chat-item:active{background:var(--bg2);}
+.av{border-radius:50%;background:linear-gradient(135deg,#d4ede0,#aed5be);display:flex;align-items:center;justify-content:center;font-weight:700;color:#3d7a55;flex-shrink:0;}
+.av-md{width:50px;height:50px;font-size:20px;}
+.av-lg{width:88px;height:88px;font-size:38px;margin:24px auto 12px;}
+.av-sm{width:46px;height:46px;font-size:18px;}
+.chat-info{flex:1;min-width:0;}
+.chat-name{font-weight:600;font-size:16px;}
+.chat-prev{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chat-meta{text-align:right;}
+.chat-time{font-size:10px;color:var(--muted);}
+.badge{background:var(--green2);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;margin-top:4px;}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty div:first-child{font-size:52px;margin-bottom:12px;}
+.empty div:last-child{font-size:14px;}
+
+/* MESSAGES */
+.msgs{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;background:var(--wall);}
+.msg{display:flex;max-width:78%;}
+.msg.out{align-self:flex-end;}
+.msg.in{align-self:flex-start;}
+.bubble{padding:10px 14px;border-radius:20px;font-size:var(--fs);line-height:1.45;}
+.msg.out .bubble{background:var(--sent);border-bottom-right-radius:5px;color:var(--text);}
+.msg.in .bubble{background:var(--recv);border-bottom-left-radius:5px;box-shadow:0 1px 6px rgba(0,0,0,0.08);}
+.msg-meta{display:flex;justify-content:flex-end;align-items:center;margin-top:3px;font-size:9px;opacity:0.6;gap:3px;}
+.msg.out .msg-meta .ticks{color:var(--purple);}
+.divider{display:flex;align-items:center;margin:8px 0;gap:10px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.divider span{background:transparent;padding:2px 10px;font-size:11px;color:var(--muted);white-space:nowrap;}
+
+/* NEW CHAT HEADER */
+.chat-hdr{padding:10px 12px;background:var(--bg);display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.chat-back{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text);width:34px;height:34px;display:flex;align-items:center;justify-content:center;}
+.chat-av-wrap{position:relative;flex-shrink:0;}
+.chat-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#d4ede0,#aed5be);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#3d7a55;cursor:pointer;}
+.chat-av-dot{width:11px;height:11px;border-radius:50%;background:#25D366;border:2px solid var(--bg);position:absolute;bottom:1px;right:1px;display:none;}
+.chat-av-dot.show{display:block;}
+.chat-hdr-info{flex:1;cursor:pointer;}
+.chat-hdr-name{font-weight:700;font-size:16px;color:var(--text);}
+.chat-hdr-stat{font-size:11px;color:var(--purple);font-weight:500;}
+.chat-hdr-icons{display:flex;align-items:center;gap:2px;}
+.chat-icon-btn{background:none;border:none;font-size:18px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--text);}
+.chat-icon-btn:active{background:var(--bg2);}
+
+/* NEW INPUT ROW */
+.chat-input-row{padding:10px 12px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.chat-plus-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:9px 14px;outline:none;font-size:14px;color:var(--text);font-family:inherit;resize:none;}
+.chat-emoji-btn{background:none;border:none;font-size:22px;cursor:pointer;flex-shrink:0;}
+.chat-send-btn{background:var(--purple);border:none;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,0.4);}
+.chat-wave-btn{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);flex-shrink:0;}
+
+/* INPUT (old, keep for non-chat screens) */
+.input-row{padding:10px 14px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;}
+.msg-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:10px 16px;outline:none;font-size:14px;color:var(--text);font-family:inherit;resize:none;}
+.send-btn{background:var(--green2);border:none;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0;}
+
+/* CONTACT INFO */
+.ci-header{background:var(--header);padding:28px 16px 22px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.ci-name{font-size:22px;font-weight:800;color:#fff;}
+.ci-status{font-size:13px;color:rgba(255,255,255,0.7);}
+.ci-body{flex:1;overflow-y:auto;}
+.ci-section{padding:14px 16px;border-bottom:1px solid var(--border);}
+.ci-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+.ci-value{font-size:15px;}
+.ci-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+.ci-row:active{background:var(--bg2);}
+.ci-row-label{font-size:15px;font-weight:500;}
+
+/* TOGGLE */
+.tog{width:44px;height:24px;background:var(--border);border-radius:24px;position:relative;cursor:pointer;flex-shrink:0;}
+.tog.on{background:var(--green2);}
+.tog::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.2s;}
+.tog.on::after{left:22px;}
+
+/* SETTINGS */
+.s-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);padding:16px 16px 6px;}
+.s-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg);cursor:pointer;}
+.s-row:active{background:var(--bg2);}
+.s-row-label{font-size:15px;font-weight:500;}
+.s-row select,.s-row input{padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit;}
+.s-save{display:block;width:calc(100% - 32px);margin:20px 16px 0;background:#075E54;color:#fff;border:none;padding:14px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.s-danger{display:block;width:calc(100% - 32px);margin:10px 16px 0;background:#e74c3c;color:#fff;border:none;padding:14px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.chevron{font-size:20px;color:var(--muted);}
+
+/* RADIO */
+.r-opt{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+.r-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);background:var(--bg);}
+.r-dot.on{background:var(--green2);border-color:var(--green2);}
+
+/* SWATCHES */
+.swatch-row{display:flex;gap:12px;flex-wrap:wrap;padding:14px 16px;}
+.sw{width:40px;height:40px;border-radius:50%;cursor:pointer;border:3px solid transparent;}
+.sw.on{border-color:#075E54;}
+.font-row{display:flex;gap:10px;padding:14px 16px;}
+.font-btn{flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;font-weight:600;font-family:inherit;}
+.font-btn.on{border-color:var(--green2);color:var(--green2);}
+
+/* STATUS & CALLS */
+.status-card,.call-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.status-card:active,.call-card:active{background:var(--bg2);}
+.sc-info{flex:1;}
+.sc-name{font-weight:600;font-size:15px;}
+.sc-text{font-size:12px;color:var(--text2);margin-top:3px;}
+.sc-time{font-size:10px;color:var(--muted);margin-top:2px;}
+.call-btn{background:var(--green2);color:#fff;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;}
+.add-btn{background:var(--green2);color:#fff;border:none;padding:12px 20px;border-radius:30px;font-size:14px;font-weight:600;margin:14px 16px;cursor:pointer;display:block;}
+
+/* ACCOUNT FIELDS */
+.ac-field{padding:0 16px;border-bottom:1px solid var(--border);}
+.ac-field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;padding-top:13px;}
+.ac-field input,.ac-field textarea{width:100%;background:transparent;border:none;outline:none;font-size:15px;color:var(--text);padding:8px 0 13px;font-family:inherit;resize:none;}
+.emoji-row{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;background:var(--bg2);display:none;}
+.emoji-row.show{display:flex;}
+.em{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;background:var(--bg);}
+
+/* MODAL */
+.modal{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top-left-radius:20px;border-top-right-radius:20px;padding:20px;z-index:400;transform:translateY(100%);transition:transform 0.3s;}
+.modal.show{transform:translateY(0);}
+.modal textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;margin:12px 0;background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btns button{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;font-family:inherit;font-size:14px;}
+.modal-ok{background:var(--green2);color:#fff;}
+.modal-cancel{background:var(--bg2);color:var(--text);}
+
+/* DELETE SHEET */
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top-left-radius:20px;border-top-right-radius:20px;padding:20px;z-index:400;transform:translateY(100%);transition:transform 0.3s;box-shadow:0 -4px 20px rgba(0,0,0,0.15);}
+.sheet.show{transform:translateY(0);}
+.sheet-name{font-size:17px;font-weight:700;margin-bottom:4px;}
+.sheet-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.sheet-btn{display:block;width:100%;padding:14px;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.sheet-red{background:#e74c3c;color:#fff;}
+.sheet-grey{background:var(--bg2);color:var(--text);}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:none;}
+.ov.show{display:block;}
+
+/* STORAGE */
+.stor-bar-bg{height:8px;background:var(--bg3);border-radius:8px;overflow:hidden;margin:10px 0 6px;}
+.stor-bar{height:100%;background:var(--green2);border-radius:8px;}
+
+/* FAB */
+.fab-wrap{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:200;}
+.fab-main{width:62px;height:62px;border-radius:50%;background:#25D366;border:none;color:#fff;font-size:34px;cursor:pointer;box-shadow:0 4px 18px rgba(37,211,102,0.5);display:flex;align-items:center;justify-content:center;transition:transform 0.3s,background 0.2s;flex-shrink:0;}
+.fab-main.open{transform:rotate(45deg);background:#e74c3c;box-shadow:0 4px 18px rgba(231,76,60,0.4);}
+.fab-item{display:flex;flex-direction:row;align-items:center;gap:12px;opacity:0;pointer-events:none;transform:translateY(10px) scale(0.9);transition:opacity 0.2s,transform 0.25s cubic-bezier(.34,1.56,.64,1);}
+.fab-item.show{opacity:1;pointer-events:all;transform:translateY(0) scale(1);}
+.fab-item:nth-child(1){transition-delay:0.12s;}
+.fab-item:nth-child(2){transition-delay:0.07s;}
+.fab-item:nth-child(3){transition-delay:0.02s;}
+.fab-icon-btn{width:52px;height:52px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;box-shadow:0 3px 12px rgba(37,211,102,0.45);}
+.fab-icon-btn:active{transform:scale(0.92);}
+.fab-lbl{background:var(--bg);color:var(--text);font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
 </style>
 </head>
 <body>
+<div class="app">
+<div class="ov" id="ov"></div>
 
-<div class="app-container">
-  
-  <div class="overlay" id="overlay"></div>
-
-  <div class="status-modal" id="statusModal">
-    <h3>Update Status</h3>
-    <textarea id="statusInput" rows="3" placeholder="What's on your mind?"></textarea>
-    <div class="modal-buttons">
-      <button class="modal-cancel" id="cancelStatusBtn">Cancel</button>
-      <button class="modal-save" id="postStatusBtn">Post</button>
-    </div>
-  </div>
-
-  <div class="main-content">
-    
-    <!-- Chats Screen -->
-    <div class="screen-chats show" id="screenChats">
-      <div class="header">
-        <div class="logo">
-          <h1>JUSTUS</h1>
-          <span>🔒 PRIVATE & SECURE</span>
-        </div>
-        <button class="menu-btn" id="menuBtn">⋮</button>
-      </div>
-      <div class="dropdown-menu" id="dropdownMenu">
-        <div class="dropdown-item" id="menuSettings">⚙️ Settings</div>
-        <div class="dropdown-item" id="menuHelp">❓ Help</div>
-        <div class="dropdown-item" id="menuInvite">🔗 Invite Friend</div>
-      </div>
-      <div class="chat-list" id="chatList"></div>
-    </div>
-
-    <!-- Chat Detail Screen -->
-    <div class="screen-chat" id="screenChat">
-      <div class="chat-header">
-        <button class="back-btn" id="chatBackBtn">←</button>
-        <div class="chat-header-avatar" id="chatAvatar">C</div>
-        <div class="chat-header-info">
-          <div class="chat-header-name" id="chatName">Chiselda</div>
-          <div class="chat-header-status" id="chatStatus">Online</div>
-        </div>
-      </div>
-      <div class="messages-area" id="messagesArea">
-        <div class="date-divider"><span>Today</span></div>
-      </div>
-      <div class="input-area">
-        <textarea class="message-input" id="messageInput" rows="1" placeholder="Type a message..."></textarea>
-        <button class="send-btn" id="sendBtn">➤</button>
-      </div>
-    </div>
-
-    <!-- Profile Screen -->
-    <div class="screen-profile" id="screenProfile">
-      <div class="profile-header">
-        <button class="back-btn" id="profileBackBtn">←</button>
-        <div style="flex:1"></div>
-      </div>
-      <div class="profile-avatar-large" id="profileAvatar">C</div>
-      <div class="profile-name" id="profileName">Chiselda</div>
-      <div class="profile-status" id="profileStatus">Online</div>
-      
-      <div class="profile-section">
-        <div class="profile-section-title">Privacy</div>
-        <div class="profile-item" id="muteItem">
-          <div class="profile-item-left">
-            <span class="profile-item-icon">🔕</span>
-            <span class="profile-item-label">Mute Notifications</span>
-          </div>
-          <div class="toggle-switch" id="muteToggle"></div>
-        </div>
-      </div>
-      
-      <div class="profile-section">
-        <div class="profile-section-title">Chat</div>
-        <div class="profile-item" id="clearChatItem">
-          <div class="profile-item-left">
-            <span class="profile-item-icon">🗑️</span>
-            <span class="profile-item-label">Clear Chat</span>
-          </div>
-          <span class="danger-text">Clear →</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Updates Screen -->
-    <div class="screen-updates" id="screenUpdates">
-      <div class="header">
-        <div class="logo"><h1>UPDATES</h1><span>STATUS</span></div>
-        <div style="width:44px"></div>
-      </div>
-      <button class="add-status-btn" id="openStatusBtn">➕ Add Status Update</button>
-      <div class="status-list" id="statusList"></div>
-    </div>
-
-    <!-- Communities Screen -->
-    <div class="screen-communities" id="screenCommunities">
-      <div class="header">
-        <div class="logo"><h1>COMMUNITIES</h1><span>GROUPS</span></div>
-        <div style="width:44px"></div>
-      </div>
-      <div class="status-list">
-        <div class="status-card"><div class="status-avatar-small">🌍</div><div class="status-info"><div class="status-name">Global Goals</div><div class="status-text">1,234 members</div></div></div>
-        <div class="status-card"><div class="status-avatar-small">💻</div><div class="status-info"><div class="status-name">Tech Talk</div><div class="status-text">567 members</div></div></div>
-        <div class="status-card"><div class="status-avatar-small">🎮</div><div class="status-info"><div class="status-name">Gamers Hub</div><div class="status-text">2,101 members</div></div></div>
-      </div>
-    </div>
-
-    <!-- Calls Screen -->
-    <div class="screen-calls" id="screenCalls">
-      <div class="header">
-        <div class="logo"><h1>CALLS</h1><span>HISTORY</span></div>
-        <div style="width:44px"></div>
-      </div>
-      <div class="call-list" id="callList"></div>
-    </div>
-
-    <!-- Settings Screen -->
-    <div class="screen-settings" id="screenSettings">
-      <div class="header">
-        <button class="back-btn" id="settingsBackBtn">←</button>
-        <div class="logo"><h1 style="font-size:18px;">SETTINGS</h1></div>
-        <div style="width:36px"></div>
-      </div>
-      <div class="settings-list">
-        <div class="settings-item">
-          <span>Theme</span>
-          <select id="themeSelect">
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="oled">OLED Black</option>
-          </select>
-        </div>
-        <div class="settings-item">
-          <span>Username</span>
-          <input type="text" id="usernameInput" placeholder="Your name" value="Alex J.">
-        </div>
-        <button class="add-status-btn" id="saveSettingsBtn" style="margin:20px 0 0 0">Save Settings</button>
-      </div>
-    </div>
-
-    <!-- Help Screen -->
-    <div class="screen-help" id="screenHelp">
-      <div class="header">
-        <button class="back-btn" id="helpBackBtn">←</button>
-        <div class="logo"><h1 style="font-size:18px;">HELP</h1></div>
-        <div style="width:36px"></div>
-      </div>
-      <div class="help-body">
-        <p class="help-intro">Quick reference for common actions in JUSTUS.</p>
-        <table class="help-table">
-          <thead>
-            <tr>
-              <th>Action</th>
-              <th>How to do it</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>View profile</td>
-              <td>Long-press (hold) on any chat in the list</td>
-            </tr>
-            <tr>
-              <td>Mute notifications</td>
-              <td>In profile, tap the mute toggle</td>
-            </tr>
-            <tr>
-              <td>Clear chat</td>
-              <td>In profile, tap "Clear Chat"</td>
-            </tr>
-            <tr>
-              <td>Update status</td>
-              <td>Go to Updates tab → tap "Add Status Update"</td>
-            </tr>
-            <tr>
-              <td>Make a call</td>
-              <td>Go to Calls tab → tap the phone icon</td>
-            </tr>
-            <tr>
-              <td>Change theme</td>
-              <td>Settings tab → pick Light / Dark / OLED</td>
-            </tr>
-            <tr>
-              <td>Back to chats</td>
-              <td>Tap the ← arrow in top left</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="help-tip">
-          <strong>💡 Tip</strong>
-          On mobile, long-press means pressing and holding a chat for about one second until the profile opens.
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Bottom Nav -->
-  <div class="bottom-nav">
-    <div class="nav-item active" data-screen="chats"><div class="nav-icon">💬</div><div class="nav-label">Chats</div></div>
-    <div class="nav-item" data-screen="updates"><div class="nav-icon">📢</div><div class="nav-label">Updates</div></div>
-    <div class="nav-item" data-screen="communities"><div class="nav-icon">👥</div><div class="nav-label">Communities</div></div>
-    <div class="nav-item" data-screen="calls"><div class="nav-icon">📞</div><div class="nav-label">Calls</div></div>
-    <div class="nav-item" data-screen="settings"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+<!-- STATUS MODAL -->
+<div class="modal" id="statusModal">
+  <h3 style="font-size:17px;font-weight:700">Update Status</h3>
+  <textarea id="statusInput" rows="3" placeholder="What's on your mind?"></textarea>
+  <div class="modal-btns">
+    <button class="modal-cancel" id="statusCancel">Cancel</button>
+    <button class="modal-ok" id="statusPost">Post</button>
   </div>
 </div>
 
-<script>
-// Chat data
-let chats = [
-  { id: 1, name: "Chiselda", avatar: "C", status: "Online", lastMessage: "Hey! How are you?", time: "21:16", unread: 2, muted: false },
-  { id: 2, name: "Sarah Chen", avatar: "S", status: "Online", lastMessage: "Thanks for the update", time: "9:15 AM", unread: 0, muted: false },
-  { id: 3, name: "Mike Johnson", avatar: "M", status: "Last seen yesterday", lastMessage: "Love the app! 😊", time: "Yesterday", unread: 0, muted: false },
-  { id: 4, name: "Emily Davis", avatar: "E", status: "Online", lastMessage: "See you tomorrow", time: "Yesterday", unread: 1, muted: false }
-];
+<!-- DELETE SHEET -->
+<div class="sheet" id="deleteSheet">
+  <div class="sheet-name" id="deleteSheetName">Contact</div>
+  <div class="sheet-sub">Remove this contact and clear all messages?</div>
+  <button class="sheet-btn sheet-red" id="deleteConfirm">Remove Contact</button>
+  <button class="sheet-btn sheet-grey" id="deleteCancel">Cancel</button>
+</div>
 
-let messages = {
-  1: [{ text: "Hey! How are you?", sent: false, time: "21:10" }, { text: "I'm good!", sent: true, time: "21:12" }],
-  2: [{ text: "Thanks for the update", sent: false, time: "9:10 AM" }],
-  3: [{ text: "Love the app! 😊", sent: false, time: "Yesterday" }],
-  4: [{ text: "See you tomorrow", sent: false, time: "Yesterday" }]
+<div class="content">
+
+<!-- LOGIN -->
+<div class="screen show" id="sLogin">
+  <div class="login-logo"><h1>JUSTUS</h1><p>🔒 Private & Secure Messaging</p></div>
+  <div class="login-card">
+    <div class="tabs">
+      <button class="tab on" id="tabLogin">Log In</button>
+      <button class="tab" id="tabSignup">Sign Up</button>
+    </div>
+    <div id="fLogin">
+      <div class="field"><label>Username</label><input type="text" id="liUser" placeholder="Your username" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input type="password" id="liPass" placeholder="Your password"></div>
+      <button class="lbtn" id="liBtn">Log In</button>
+      <div class="lerr" id="liErr"></div>
+    </div>
+    <div id="fSignup" style="display:none">
+      <div class="field"><label>Full Name</label><input type="text" id="suName" placeholder="Your display name"></div>
+      <div class="field"><label>Username</label><input type="text" id="suUser" placeholder="Choose a username"></div>
+      <div class="field"><label>Password</label><input type="password" id="suPass" placeholder="Create a password"></div>
+      <button class="lbtn" id="suBtn">Create Account</button>
+      <div class="lerr" id="suErr"></div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:20px;font-size:12px;color:rgba(255,255,255,0.5)">Your data is private and secure</div>
+</div>
+
+<!-- CHATS -->
+<div class="screen" id="sChats">
+  <div class="hdr">
+    <div class="hdr-logo"><h1>JUSTUS</h1><small id="hdrSub">🔒 PRIVATE & SECURE</small></div>
+    <button class="hdr-menu" id="mainMenu">⋮</button>
+  </div>
+  <div class="drop" id="mainDrop">
+    <div class="drop-item" id="goSettings">Settings</div>
+    <div class="drop-item" id="goHelp">Help</div>
+    <div class="drop-item" id="goInvite">Invite a Friend</div>
+  </div>
+  <div style="flex:1;overflow-y:auto" id="chatList">
+    <div class="empty"><div>💬</div><div>No contacts yet.<br>Others appear when they sign up.</div></div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="screen" id="sChat">
+  <div class="chat-hdr">
+    <button class="chat-back" id="chatBack">←</button>
+    <div class="chat-av-wrap" id="chatInfo">
+      <div class="chat-av" id="chatAv">C</div>
+      <div class="chat-av-dot" id="chatAvDot"></div>
+    </div>
+    <div class="chat-hdr-info" id="chatInfo2">
+      <div class="chat-hdr-name" id="chatName">—</div>
+      <div class="chat-hdr-stat" id="chatStat">—</div>
+    </div>
+    <div class="chat-hdr-icons">
+      <button class="chat-icon-btn">🔍</button>
+      <button class="chat-icon-btn">📞</button>
+      <button class="chat-icon-btn">🎥</button>
+      <button class="chat-icon-btn" id="chatMenu">⋮</button>
+    </div>
+  </div>
+  <div class="drop" id="chatDrop" style="top:66px">
+    <div class="drop-item" id="cdInfo">View Info</div>
+    <div class="drop-item" id="cdMute">Mute</div>
+    <div class="drop-item" id="cdBlock" style="color:#e74c3c">Block</div>
+    <div class="drop-item" id="cdStatus">Their Status</div>
+  </div>
+  <div class="msgs" id="msgs"><div class="divider"><span>Today</span></div></div>
+  <div class="chat-input-row">
+    <button class="chat-plus-btn" style="flex-shrink:0">＋</button>
+    <textarea class="chat-input" id="msgInput" rows="1" placeholder="Type a message..."></textarea>
+    <button class="chat-emoji-btn">🙂</button>
+    <button class="chat-send-btn" id="sendBtn">🎤</button>
+    <button class="chat-wave-btn">〰</button>
+  </div>
+</div>
+
+<!-- CONTACT INFO -->
+<div class="screen" id="sInfo">
+  <div class="hdr">
+    <button class="hdr-back" id="infoBack">←</button>
+    <span class="hdr-title">Contact Info</span>
+  </div>
+  <div class="ci-header">
+    <div class="av av-lg" id="infoAv">C</div>
+    <div class="ci-name" id="infoName">—</div>
+    <div class="ci-status" id="infoStat">—</div>
+  </div>
+  <div class="ci-body">
+    <div class="ci-section"><div class="ci-label">About</div><div class="ci-value" id="infoAbout">—</div></div>
+    <div class="ci-section"><div class="ci-label">Username</div><div class="ci-value" id="infoUser">—</div></div>
+    <div class="ci-row" id="infoMuteRow">
+      <span class="ci-row-label">Mute Notifications</span>
+      <div class="tog" id="infoMuteTog"></div>
+    </div>
+    <div class="ci-row" id="infoBlockRow">
+      <span class="ci-row-label" id="infoBlockLbl" style="color:#e74c3c">Block Contact</span>
+      <span class="chevron" style="color:#e74c3c">›</span>
+    </div>
+    <div class="ci-row" id="infoClearRow">
+      <span class="ci-row-label" style="color:#e74c3c">Clear Chat</span>
+      <span class="chevron" style="color:#e74c3c">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATES -->
+<div class="screen" id="sUpdates">
+  <div class="hdr"><div class="hdr-logo"><h1>UPDATES</h1></div><div style="width:44px"></div></div>
+  <div style="flex:1;overflow-y:auto">
+    <div style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">My Status</div>
+    <div class="status-card" style="cursor:pointer" id="myStatusCard">
+      <div class="av av-sm" id="myStatusAv" style="border:3px solid var(--green2)">A</div>
+      <div class="sc-info"><div class="sc-name" id="myStatusName">My Status</div><div class="sc-text">Tap to add update</div></div>
+      <span style="font-size:22px;color:var(--green2)">＋</span>
+    </div>
+    <div style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)">Recent Updates</div>
+    <div id="statusList"></div>
+  </div>
+</div>
+
+<!-- CALLS -->
+<div class="screen" id="sCalls">
+  <div class="hdr"><div class="hdr-logo"><h1>CALLS</h1></div><div style="width:44px"></div></div>
+  <div style="flex:1;overflow-y:auto" id="callList"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="sSettings">
+  <div class="hdr">
+    <button class="hdr-back" id="settBack">←</button>
+    <span class="hdr-title">Settings</span>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:30px">
+    <div class="s-label">Account</div>
+    <div class="s-row" id="goAccount"><span class="s-row-label">Account</span><span class="chevron">›</span></div>
+    <div class="s-row" id="goPrivacy"><span class="s-row-label">Privacy</span><span class="chevron">›</span></div>
+    <div class="s-label">Preferences</div>
+    <div class="s-row" id="goChats"><span class="s-row-label">Chats</span><span class="chevron">›</span></div>
+    <div class="s-row" id="goNotifs"><span class="s-row-label">Notifications</span><span class="chevron">›</span></div>
+    <div class="s-row" id="goStorage"><span class="s-row-label">Storage and Data</span><span class="chevron">›</span></div>
+    <div class="s-label">Appearance</div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Theme</span>
+      <select id="themeSelect"><option value="light">Light</option><option value="dark">Dark</option><option value="oled">OLED Black</option></select>
+    </div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Language</span>
+      <select id="langSelect"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="pt">Português</option></select>
+    </div>
+    <div class="s-label">More</div>
+    <div class="s-row" id="sInvite"><span class="s-row-label">Invite a Friend</span><span class="chevron">›</span></div>
+    <div class="s-row" id="sHelp"><span class="s-row-label">Help</span><span class="chevron">›</span></div>
+    <div class="s-label">Session</div>
+    <div class="s-row" id="logoutBtn"><span class="s-row-label" style="color:#e74c3c">Log Out</span><span class="chevron" style="color:#e74c3c">›</span></div>
+  </div>
+</div>
+
+<!-- ACCOUNT -->
+<div class="screen" id="sAccount">
+  <div class="hdr">
+    <button class="hdr-back" id="accBack">←</button>
+    <span class="hdr-title">Account</span>
+    <button id="accSave" style="background:none;border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;padding:4px 8px">Save</button>
+  </div>
+  <div style="flex:1;overflow-y:auto">
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px 0 10px">
+      <div class="av av-lg" id="accAv" style="cursor:pointer;margin:0">A</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">Tap to change</div>
+    </div>
+    <div class="emoji-row" id="emojiRow">
+      <div class="em">😀</div><div class="em">😎</div><div class="em">🤩</div><div class="em">😊</div>
+      <div class="em">🥳</div><div class="em">😍</div><div class="em">🤔</div><div class="em">😴</div>
+      <div class="em">🙂</div><div class="em">😇</div><div class="em">🤗</div><div class="em">✌️</div>
+    </div>
+    <div class="ac-field"><label>Name</label><input type="text" id="accName" placeholder="Your name"></div>
+    <div class="ac-field"><label>About</label><textarea id="accAbout" rows="2" placeholder="Hey there!"></textarea></div>
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Phone</div>
+      <div style="font-size:15px;color:var(--text2);margin-top:4px">+1 234 567 8900</div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY -->
+<div class="screen" id="sPrivacy">
+  <div class="hdr"><button class="hdr-back" id="privBack">←</button><span class="hdr-title">Privacy</span></div>
+  <div style="flex:1;overflow-y:auto">
+    <div class="s-label">Messaging</div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Read Receipts</span><div class="tog" id="rrTog"></div></div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Online Status</span><div class="tog" id="osTog"></div></div>
+    <div class="s-label">Last Seen</div>
+    <div class="r-opt" data-g="lastSeen" data-v="everyone"><span>Everyone</span><div class="r-dot"></div></div>
+    <div class="r-opt" data-g="lastSeen" data-v="contacts"><span>My Contacts</span><div class="r-dot"></div></div>
+    <div class="r-opt" data-g="lastSeen" data-v="nobody"><span>Nobody</span><div class="r-dot"></div></div>
+    <div class="s-label">Profile Photo</div>
+    <div class="r-opt" data-g="profilePhoto" data-v="everyone"><span>Everyone</span><div class="r-dot"></div></div>
+    <div class="r-opt" data-g="profilePhoto" data-v="contacts"><span>My Contacts</span><div class="r-dot"></div></div>
+    <div class="r-opt" data-g="profilePhoto" data-v="nobody"><span>Nobody</span><div class="r-dot"></div></div>
+  </div>
+</div>
+
+<!-- CHATS SETTINGS -->
+<div class="screen" id="sChatsSettings">
+  <div class="hdr"><button class="hdr-back" id="csBack">←</button><span class="hdr-title">Chats</span></div>
+  <div style="flex:1;overflow-y:auto">
+    <div class="s-label">Wallpaper</div>
+    <div class="swatch-row" id="wallSwatches">
+      <div class="sw on" data-v="#f5f5f5" style="background:#f5f5f5;border-color:#ccc"></div>
+      <div class="sw" data-v="#d4ede0" style="background:#d4ede0"></div>
+      <div class="sw" data-v="#dce8f5" style="background:#dce8f5"></div>
+      <div class="sw" data-v="#f5dce8" style="background:#f5dce8"></div>
+      <div class="sw" data-v="#f5f0dc" style="background:#f5f0dc"></div>
+      <div class="sw" data-v="#ecdcf5" style="background:#ecdcf5"></div>
+      <div class="sw" data-v="#1a1a1a" style="background:#1a1a1a"></div>
+    </div>
+    <div class="s-label">Bubble Color</div>
+    <div class="swatch-row" id="bubSwatches">
+      <div class="sw on" data-v="#DCF8C6" style="background:#DCF8C6"></div>
+      <div class="sw" data-v="#bbdefb" style="background:#bbdefb"></div>
+      <div class="sw" data-v="#e1bee7" style="background:#e1bee7"></div>
+      <div class="sw" data-v="#ffccbc" style="background:#ffccbc"></div>
+      <div class="sw" data-v="#075E54" style="background:#075E54"></div>
+    </div>
+    <div class="s-label">Font Size</div>
+    <div class="font-row">
+      <button class="font-btn" data-v="12px" style="font-size:12px">Small</button>
+      <button class="font-btn on" data-v="14px" style="font-size:14px">Medium</button>
+      <button class="font-btn" data-v="17px" style="font-size:17px">Large</button>
+    </div>
+    <div class="s-label">Input</div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Enter to Send</span><div class="tog" id="etsTog"></div></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="screen" id="sNotifs">
+  <div class="hdr"><button class="hdr-back" id="notifBack">←</button><span class="hdr-title">Notifications</span></div>
+  <div style="flex:1;overflow-y:auto">
+    <div class="s-label">Messages</div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Notifications</span><div class="tog" id="nTog"></div></div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Sound</span><div class="tog" id="sTog"></div></div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Vibrate</span><div class="tog" id="vTog"></div></div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Message Preview</span><div class="tog" id="pTog"></div></div>
+    <div class="s-label">Test</div>
+    <div class="s-row" id="testNotif"><span class="s-row-label" style="color:var(--green2)">Send Test Notification</span><span class="chevron">›</span></div>
+  </div>
+</div>
+
+<!-- STORAGE -->
+<div class="screen" id="sStorage">
+  <div class="hdr"><button class="hdr-back" id="storBack">←</button><span class="hdr-title">Storage and Data</span></div>
+  <div style="flex:1;overflow-y:auto">
+    <div class="s-label">Usage</div>
+    <div style="padding:16px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2)"><span id="storUsed">Calculating...</span><span>5 MB</span></div>
+      <div class="stor-bar-bg"><div class="stor-bar" id="storBar" style="width:0%"></div></div>
+      <div style="font-size:12px;color:var(--muted)" id="storMsgs">Messages: —</div>
+    </div>
+    <div class="s-label">Data</div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Auto-Download</span><div class="tog" id="adTog"></div></div>
+    <div class="s-row" style="cursor:default"><span class="s-row-label">Data Saver</span><div class="tog" id="dsTog"></div></div>
+    <div class="s-label">Clear</div>
+    <button class="s-danger" id="clearCache">Clear Cache</button>
+    <button class="s-danger" id="clearAll" style="background:#c0392b">Clear All Data</button>
+  </div>
+</div>
+
+<!-- HELP -->
+<div class="screen" id="sHelp">
+  <div class="hdr"><button class="hdr-back" id="helpBack">←</button><span class="hdr-title">Help</span></div>
+  <div style="flex:1;overflow-y:auto;padding:20px 16px">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5">Quick reference for common actions.</p>
+    <table style="width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <thead><tr style="background:#075E54"><th style="color:#fff;font-size:12px;padding:11px 13px;text-align:left">Action</th><th style="color:#fff;font-size:12px;padding:11px 13px;text-align:left">How</th></tr></thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:12px 13px;font-weight:700;font-size:13px">View contact</td><td style="padding:12px 13px;font-size:13px;color:var(--text2)">Tap avatar or name in chat</td></tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg2)"><td style="padding:12px 13px;font-weight:700;font-size:13px">Delete contact</td><td style="padding:12px 13px;font-size:13px;color:var(--text2)">Long press chat in list</td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:12px 13px;font-weight:700;font-size:13px">Mute</td><td style="padding:12px 13px;font-size:13px;color:var(--text2)">⋮ menu → Mute, or Contact Info</td></tr>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg2)"><td style="padding:12px 13px;font-weight:700;font-size:13px">Status</td><td style="padding:12px 13px;font-size:13px;color:var(--text2)">+ button → Status</td></tr>
+        <tr style="border-bottom:1px solid var(--border)"><td style="padding:12px 13px;font-weight:700;font-size:13px">Make a call</td><td style="padding:12px 13px;font-size:13px;color:var(--text2)">+ button → Calls</td></tr>
+        <tr style="background:var(--bg2)"><td style="padding:12px 13px;font-weight:700;font-size:13px">Change theme</td><td style="padding:12px 13px;font-size:13px;color:var(--text2)">⋮ menu → Settings → Theme</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+<!-- FAB -->
+<div class="fab-wrap" id="fabWrap">
+  <div class="fab-item" id="fi1"><span class="fab-lbl">Chats</span><div class="fab-icon-btn">💬</div></div>
+  <div class="fab-item" id="fi2"><span class="fab-lbl">Status</span><div class="fab-icon-btn">📢</div></div>
+  <div class="fab-item" id="fi3"><span class="fab-lbl">Calls</span><div class="fab-icon-btn">📞</div></div>
+  <button class="fab-main" id="fabBtn">+</button>
+</div>
+
+</div><!-- end app -->
+
+<script>
+// ── FIREBASE ──
+firebase.initializeApp({
+  apiKey:"AIzaSyDUHVeaHIMRS8GxkFNEjVSXfUeKr_mQnp0",
+  authDomain:"just-you-n-i.firebaseapp.com",
+  databaseURL:"https://just-you-n-i-default-rtdb.firebaseio.com",
+  projectId:"just-you-n-i",
+  storageBucket:"just-you-n-i.firebasestorage.app",
+  messagingSenderId:"340669970156",
+  appId:"1:340669970156:web:8d9e0db1c1bd08e99e17c9"
+});
+const auth = firebase.auth();
+const db = firebase.database();
+
+// ── STATE ──
+let uid = null, chats = [], statuses = [], calls = [], activeChatId = null, deleteTargetId = null;
+let msgListener = null;
+
+const S = {
+  theme:'light', lang:'en', username:'', about:'Hey there! I am using JUSTUS.', emoji:'',
+  readReceipts:true, onlineStatus:true, lastSeen:'everyone', profilePhoto:'everyone',
+  wall:'#f5f5f5', bubble:'#DCF8C6', fontSize:'14px', enterToSend:false,
+  notif:true, sound:true, vibrate:true, preview:true, autoDownload:true, dataSaver:false
 };
 
-let statuses = [
-  { name: "Alex J.", text: "Working on JUSTUS! 🚀", time: "2 hours ago", avatar: "A" },
-  { name: "Sarah Chen", text: "Beautiful day ☀️", time: "5 hours ago", avatar: "S" }
-];
-
-let calls = [
-  { name: "Chiselda", type: "Missed", time: "Yesterday", avatar: "C" },
-  { name: "Sarah Chen", type: "Incoming", time: "2 days ago", avatar: "S" }
-];
-
-let currentChatId = 1;
-let currentProfileId = null;
-
-// Helper function to escape HTML
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+// ── SCREENS ──
+let screenStack = [];
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+  screenStack.push(id);
+  history.pushState({id}, '', '');
+  const fabScreens = ['sChats','sUpdates','sCalls'];
+  document.getElementById('fabWrap').style.display = fabScreens.includes(id) ? 'flex' : 'none';
+  if (id === 'sUpdates') renderStatuses();
+  if (id === 'sCalls') renderCalls();
+  if (id === 'sStorage') renderStorage();
 }
 
-// Load saved data
-function loadData() {
-  const savedTheme = localStorage.getItem('justus_theme');
-  if (savedTheme) {
-    document.body.className = savedTheme;
-    const themeSelect = document.getElementById('themeSelect');
-    if (themeSelect) themeSelect.value = savedTheme;
+window.addEventListener('popstate', e => {
+  screenStack.pop();
+  const prev = screenStack[screenStack.length-1] || 'sChats';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById(prev).classList.add('show');
+  const fabScreens = ['sChats','sUpdates','sCalls'];
+  document.getElementById('fabWrap').style.display = fabScreens.includes(prev) ? 'flex' : 'none';
+});
+
+// ── FAB ──
+let fabOpen = false;
+document.getElementById('fabBtn').addEventListener('click', () => {
+  fabOpen = !fabOpen;
+  document.getElementById('fabBtn').classList.toggle('open', fabOpen);
+  ['fi1','fi2','fi3'].forEach(id => document.getElementById(id).classList.toggle('show', fabOpen));
+});
+document.getElementById('ov').addEventListener('click', () => {
+  fabOpen = false;
+  document.getElementById('fabBtn').classList.remove('open');
+  ['fi1','fi2','fi3'].forEach(id => document.getElementById(id).classList.remove('show'));
+  document.getElementById('statusModal').classList.remove('show');
+  document.getElementById('deleteSheet').classList.remove('show');
+  document.getElementById('ov').classList.remove('show');
+});
+document.getElementById('fi1').addEventListener('click', () => { fabOpen=false; document.getElementById('fabBtn').classList.remove('open'); ['fi1','fi2','fi3'].forEach(id=>document.getElementById(id).classList.remove('show')); go('sChats'); });
+document.getElementById('fi2').addEventListener('click', () => { fabOpen=false; document.getElementById('fabBtn').classList.remove('open'); ['fi1','fi2','fi3'].forEach(id=>document.getElementById(id).classList.remove('show')); go('sUpdates'); });
+document.getElementById('fi3').addEventListener('click', () => { fabOpen=false; document.getElementById('fabBtn').classList.remove('open'); ['fi1','fi2','fi3'].forEach(id=>document.getElementById(id).classList.remove('show')); go('sCalls'); });
+
+// ── AUTH ──
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    uid = user.uid;
+    await loadProfile(uid);
+    go('sChats');
+    loadContacts();
+    loadStatuses();
+    loadCalls();
+    db.ref('users/'+uid+'/online').set(true);
+    db.ref('users/'+uid+'/online').onDisconnect().set(false);
   } else {
-    document.body.className = 'light';
+    uid = null;
+    go('sLogin');
   }
-  
-  const savedUsername = localStorage.getItem('justus_username');
-  if (savedUsername) document.getElementById('usernameInput').value = savedUsername;
-  
-  const savedStatuses = localStorage.getItem('justus_statuses');
-  if (savedStatuses) statuses = JSON.parse(savedStatuses);
-  
-  const savedCalls = localStorage.getItem('justus_calls');
-  if (savedCalls) calls = JSON.parse(savedCalls);
-  
-  chats.forEach(chat => {
-    const muted = localStorage.getItem(`muted_${chat.id}`);
-    if (muted) chat.muted = muted === 'true';
+});
+
+async function doLogin(username, password) {
+  try {
+    await auth.signInWithEmailAndPassword(username.toLowerCase()+'@justus.app', password);
+    return null;
+  } catch(e) {
+    if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'||e.code==='auth/wrong-password') return 'Username or password incorrect';
+    return 'Login failed. Try again.';
+  }
+}
+
+async function doSignup(name, username, password) {
+  if(!name.trim()) return 'Enter your name';
+  if(!username||username.length<3) return 'Username needs 3+ characters';
+  if(!password||password.length<4) return 'Password needs 4+ characters';
+  const snap = await db.ref('usernames/'+username.toLowerCase()).once('value');
+  if(snap.exists()) return 'Username already taken';
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(username.toLowerCase()+'@justus.app', password);
+    const newUid = cred.user.uid;
+    const av = name.charAt(0).toUpperCase();
+    await db.ref('users/'+newUid).set({username:username.toLowerCase(),name:name.trim(),avatar:av,about:'Hey there! I am using JUSTUS.',online:true,lastSeen:firebase.database.ServerValue.TIMESTAMP});
+    await db.ref('usernames/'+username.toLowerCase()).set(newUid);
+    return null;
+  } catch(e) {
+    if(e.code==='auth/email-already-in-use') return 'Username already taken';
+    return e.message;
+  }
+}
+
+// Login UI
+document.getElementById('tabLogin').addEventListener('click', () => {
+  document.getElementById('tabLogin').classList.add('on'); document.getElementById('tabSignup').classList.remove('on');
+  document.getElementById('fLogin').style.display='block'; document.getElementById('fSignup').style.display='none';
+});
+document.getElementById('tabSignup').addEventListener('click', () => {
+  document.getElementById('tabSignup').classList.add('on'); document.getElementById('tabLogin').classList.remove('on');
+  document.getElementById('fSignup').style.display='block'; document.getElementById('fLogin').style.display='none';
+});
+document.getElementById('liBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('liBtn');
+  btn.textContent='Logging in...';
+  const err = await doLogin(document.getElementById('liUser').value.trim(), document.getElementById('liPass').value);
+  btn.textContent='Log In';
+  document.getElementById('liErr').textContent = err||'';
+});
+document.getElementById('suBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('suBtn');
+  btn.textContent='Creating...';
+  const u = document.getElementById('suUser').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  const err = await doSignup(document.getElementById('suName').value, u, document.getElementById('suPass').value);
+  btn.textContent='Create Account';
+  document.getElementById('suErr').textContent = err||'';
+});
+['liUser','liPass'].forEach(id => document.getElementById(id).addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('liBtn').click(); }));
+['suName','suUser','suPass'].forEach(id => document.getElementById(id).addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('suBtn').click(); }));
+
+// ── PROFILE ──
+async function loadProfile(u) {
+  const saved = localStorage.getItem('justus_s_'+u);
+  if(saved) Object.assign(S, JSON.parse(saved));
+  const snap = await db.ref('users/'+u).once('value');
+  const p = snap.val();
+  if(p) { S.username=p.name; S.emoji=p.avatar||p.name.charAt(0).toUpperCase(); S.about=p.about||S.about; }
+  applySettings();
+}
+
+function saveS() { if(uid) localStorage.setItem('justus_s_'+uid, JSON.stringify(S)); }
+
+function applySettings() {
+  document.body.className = S.theme;
+  document.documentElement.style.setProperty('--wall', S.wall);
+  document.documentElement.style.setProperty('--sent', S.bubble);
+  document.documentElement.style.setProperty('--fs', S.fontSize);
+  const ts = document.getElementById('themeSelect'); if(ts) ts.value=S.theme;
+  const ls = document.getElementById('langSelect'); if(ls) ls.value=S.lang;
+  const an = document.getElementById('accName'); if(an) an.value=S.username;
+  const ab = document.getElementById('accAbout'); if(ab) ab.value=S.about;
+  const aa = document.getElementById('accAv'); if(aa) aa.textContent=S.emoji;
+  document.getElementById('hdrSub').textContent = '👋 '+S.username;
+  // my status
+  const msa = document.getElementById('myStatusAv'); if(msa) msa.textContent=S.emoji||S.username.charAt(0).toUpperCase();
+  const msn = document.getElementById('myStatusName'); if(msn) msn.textContent=S.username;
+  // toggles
+  setTog('rrTog', S.readReceipts); setTog('osTog', S.onlineStatus);
+  setTog('etsTog', S.enterToSend); setTog('nTog', S.notif);
+  setTog('sTog', S.sound); setTog('vTog', S.vibrate);
+  setTog('pTog', S.preview); setTog('adTog', S.autoDownload); setTog('dsTog', S.dataSaver);
+  // radios
+  setRadio('lastSeen', S.lastSeen); setRadio('profilePhoto', S.profilePhoto);
+  // swatches
+  setSwatches('wallSwatches', S.wall); setSwatches('bubSwatches', S.bubble);
+  // font btns
+  document.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('on', b.dataset.v===S.fontSize));
+}
+
+function setTog(id, val) { const el=document.getElementById(id); if(el) el.classList.toggle('on',!!val); }
+function setRadio(g, val) { document.querySelectorAll(`.r-opt[data-g="${g}"]`).forEach(o => o.querySelector('.r-dot').classList.toggle('on', o.dataset.v===val)); }
+function setSwatches(id, val) { document.querySelectorAll(`#${id} .sw`).forEach(s => s.classList.toggle('on', s.dataset.v===val)); }
+
+// ── CONTACTS ──
+function getChatId(a, b) { return [a,b].sort().join('_'); }
+
+function loadContacts() {
+  db.ref('users').on('value', snap => {
+    const all = snap.val()||{};
+    chats = [];
+    Object.entries(all).forEach(([id, u]) => {
+      if(id===uid) return;
+      const cid = getChatId(uid, id);
+      chats.push({id:cid, uid:id, name:u.name, av:u.avatar||u.name.charAt(0), status:u.online?'Online':'Last seen recently', lastMsg:'Tap to start chatting', time:'', ts:0, unread:0, muted:false});
+    });
+    // Load last messages
+    chats.forEach(c => {
+      db.ref('chats/'+c.id+'/lastMessage').once('value').then(s => {
+        const lm=s.val(); if(lm){c.lastMsg=lm.text;c.time=lm.time;c.ts=lm.ts||0;}
+        chats.sort((a,b)=>b.ts-a.ts);
+        renderChats();
+      });
+    });
+    renderChats();
   });
 }
 
-function renderChatList() {
-  const container = document.getElementById('chatList');
-  if (!container) return;
-  
-  container.innerHTML = chats.map(chat => `
-    <div class="chat-item" data-id="${chat.id}">
-      <div class="chat-avatar-img">${escapeHtml(chat.avatar)}</div>
+function renderChats() {
+  const el = document.getElementById('chatList');
+  if(!chats.length) { el.innerHTML='<div class="empty"><div>💬</div><div>No contacts yet.<br>Others appear when they sign up.</div></div>'; return; }
+  el.innerHTML = chats.map(c => `
+    <div class="chat-item" data-id="${c.id}">
+      <div class="av av-md">${c.av}</div>
       <div class="chat-info">
-        <div class="chat-name">${escapeHtml(chat.name)} ${chat.muted ? '🔕' : ''}</div>
-        <div class="chat-preview">${escapeHtml(chat.lastMessage)}</div>
+        <div class="chat-name">${c.name}${c.muted?' 🔕':''}</div>
+        <div class="chat-prev">${c.lastMsg}</div>
       </div>
       <div class="chat-meta">
-        <div class="chat-time">${escapeHtml(chat.time)}</div>
-        ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
+        <div class="chat-time">${c.time}</div>
+        ${c.unread>0?`<div class="badge">${c.unread}</div>`:''}
       </div>
-    </div>
-  `).join('');
-  
+    </div>`).join('');
+
   document.querySelectorAll('.chat-item').forEach(item => {
-    item.addEventListener('click', () => openChat(parseInt(item.dataset.id)));
-    item.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      openProfile(parseInt(item.dataset.id));
-      return false;
-    });
-
-    // Long-press for mobile
-    let pressTimer;
-    item.addEventListener('touchstart', () => {
-      pressTimer = setTimeout(() => openProfile(parseInt(item.dataset.id)), 600);
-    });
-    item.addEventListener('touchend', () => clearTimeout(pressTimer));
-    item.addEventListener('touchmove', () => clearTimeout(pressTimer));
+    item.addEventListener('click', () => openChat(item.dataset.id));
+    item.addEventListener('contextmenu', e => { e.preventDefault(); showDeleteSheet(item.dataset.id); });
+    let pt;
+    item.addEventListener('touchstart', () => { pt=setTimeout(()=>showDeleteSheet(item.dataset.id), 650); }, {passive:true});
+    item.addEventListener('touchend', () => clearTimeout(pt));
+    item.addEventListener('touchmove', () => clearTimeout(pt));
   });
 }
 
-function openChat(chatId) {
-  currentChatId = chatId;
-  const chat = chats.find(c => c.id === chatId);
-  if (!chat) return;
-  
-  document.getElementById('chatName').innerText = chat.name;
-  document.getElementById('chatAvatar').innerText = chat.avatar;
-  document.getElementById('chatStatus').innerText = chat.status;
-  
-  const msgContainer = document.getElementById('messagesArea');
-  const msgs = messages[chatId] || [];
-  if (msgs.length === 0) {
-    msgContainer.innerHTML = '<div class="date-divider"><span>Today</span></div><div style="text-align:center;padding:20px">No messages yet</div>';
-  } else {
-    let html = '<div class="date-divider"><span>Today</span></div>';
-    msgs.forEach(msg => {
-      html += `<div class="message ${msg.sent ? 'sent' : 'received'}">
-        <div class="message-bubble">${escapeHtml(msg.text)}<div class="message-meta"><span>${escapeHtml(msg.time)}</span></div></div>
-      </div>`;
-    });
-    msgContainer.innerHTML = html;
-  }
-  msgContainer.scrollTop = msgContainer.scrollHeight;
-  
-  chat.unread = 0;
-  renderChatList();
-  showScreen('chat');
+// ── OPEN CHAT ──
+function openChat(cid) {
+  const c = chats.find(x=>x.id===cid);
+  if(!c) return;
+  activeChatId = cid;
+  document.getElementById('chatAv').textContent = c.av;
+  document.getElementById('chatName').textContent = c.name;
+  document.getElementById('chatStat').textContent = c.status;
+  document.getElementById('chatAvDot').classList.toggle('show', c.status==='Online');
+  const area = document.getElementById('msgs');
+  area.innerHTML = '<div class="divider"><span>Today</span></div><div data-empty style="text-align:center;padding:20px;color:var(--muted)">No messages yet</div>';
+  if(msgListener) { db.ref('chats/'+msgListener+'/messages').off(); msgListener=null; }
+  msgListener = cid;
+  db.ref('chats/'+cid+'/messages').on('child_added', snap => {
+    const m = snap.val();
+    const out = m.sender===uid;
+    const empty = area.querySelector('[data-empty]');
+    if(empty) empty.remove();
+    const div = document.createElement('div');
+    div.className = 'msg '+(out?'out':'in');
+    div.innerHTML = `<div class="bubble">${esc(m.text)}<div class="msg-meta"><span>${m.t}</span>${out&&S.readReceipts?'<span class="ticks"> ✓✓</span>':out?' ✓':''}</div></div>`;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+    if(!out && S.sound) ping();
+    if(!out && S.vibrate && navigator.vibrate) navigator.vibrate(100);
+  });
+  c.unread=0; renderChats();
+  go('sChat');
 }
 
-function openProfile(chatId) {
-  currentProfileId = chatId;
-  const chat = chats.find(c => c.id === chatId);
-  if (!chat) return;
-  
-  document.getElementById('profileAvatar').innerText = chat.avatar;
-  document.getElementById('profileName').innerText = chat.name;
-  document.getElementById('profileStatus').innerText = chat.status;
-  
-  const muteToggle = document.getElementById('muteToggle');
-  if (chat.muted) muteToggle.classList.add('active');
-  else muteToggle.classList.remove('active');
-  
-  showScreen('profile');
-}
+function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ping() { try{const c=new(window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.setValueAtTime(0.1,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.15);o.start();o.stop(c.currentTime+0.15);}catch(e){} }
 
-function toggleMute() {
-  if (!currentProfileId) return;
-  const chat = chats.find(c => c.id === currentProfileId);
-  if (!chat) return;
-  
-  chat.muted = !chat.muted;
-  localStorage.setItem(`muted_${chat.id}`, chat.muted);
-  const muteToggle = document.getElementById('muteToggle');
-  if (chat.muted) muteToggle.classList.add('active');
-  else muteToggle.classList.remove('active');
-  renderChatList();
-}
-
-function clearChat() {
-  if (!currentProfileId) return;
-  if (confirm('Clear all messages in this chat?')) {
-    messages[currentProfileId] = [];
-    
-    // Update last message preview for this chat
-    const chat = chats.find(c => c.id === currentProfileId);
-    if (chat) {
-      chat.lastMessage = "No messages yet";
-      chat.time = "Just now";
-    }
-    
-    if (currentChatId === currentProfileId) {
-      document.getElementById('messagesArea').innerHTML = '<div class="date-divider"><span>Today</span></div><div style="text-align:center;padding:20px">No messages yet</div>';
-    }
-    
-    renderChatList();
-    alert('Chat cleared!');
-  }
-}
-
-function sendMessage() {
-  const input = document.getElementById('messageInput');
+// ── SEND ──
+function sendMsg() {
+  const input = document.getElementById('msgInput');
   const text = input.value.trim();
-  if (!text) return;
-  
-  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  if (!messages[currentChatId]) messages[currentChatId] = [];
-  messages[currentChatId].push({ text: text, sent: true, time: time });
-  
-  // Update chat preview
-  const chat = chats.find(c => c.id === currentChatId);
-  if (chat) {
-    chat.lastMessage = text;
-    chat.time = time;
+  if(!text||!uid||!activeChatId) return;
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const ts = Date.now();
+  db.ref('chats/'+activeChatId+'/messages').push({text,sender:uid,t,ts});
+  db.ref('chats/'+activeChatId+'/lastMessage').set({text,time:t,sender:uid,ts});
+  const c = chats.find(x=>x.id===activeChatId);
+  if(c){c.lastMsg=text;c.time=t;c.ts=ts;chats.sort((a,b)=>b.ts-a.ts);renderChats();}
+  input.value='';
+  if(S.sound) ping();
+}
+document.getElementById('sendBtn').addEventListener('click', sendMsg);
+document.getElementById('msgInput').addEventListener('keypress', e => { if(e.key==='Enter'&&S.enterToSend){e.preventDefault();sendMsg();} });
+
+// ── CONTACT INFO ──
+document.getElementById('chatAv').addEventListener('click', () => openInfo(activeChatId));
+document.getElementById('chatInfo').addEventListener('click', () => openInfo(activeChatId));
+document.getElementById('chatInfo2').addEventListener('click', () => openInfo(activeChatId));
+
+async function openInfo(cid) {
+  const c = chats.find(x=>x.id===cid);
+  if(!c) return;
+  document.getElementById('infoAv').textContent = c.av;
+  document.getElementById('infoName').textContent = c.name;
+  document.getElementById('infoStat').textContent = c.status;
+  setTog('infoMuteTog', c.muted);
+  if(c.uid) {
+    const snap = await db.ref('users/'+c.uid).once('value');
+    const p = snap.val();
+    if(p){
+      document.getElementById('infoAbout').textContent = p.about||'Hey there! I am using JUSTUS.';
+      document.getElementById('infoUser').textContent = '@'+(p.username||'—');
+    }
+    const bSnap = await db.ref('users/'+uid+'/blocked/'+c.uid).once('value');
+    document.getElementById('infoBlockLbl').textContent = bSnap.val()?'Unblock Contact':'Block Contact';
   }
-  renderChatList();
-  
-  const container = document.getElementById('messagesArea');
-  if (container.innerHTML.includes('No messages yet')) container.innerHTML = '<div class="date-divider"><span>Today</span></div>';
-  container.innerHTML += `<div class="message sent"><div class="message-bubble">${escapeHtml(text)}<div class="message-meta"><span>${escapeHtml(time)}</span> ✓✓</div></div></div>`;
-  container.scrollTop = container.scrollHeight;
-  input.value = '';
+  go('sInfo');
 }
 
-function renderStatusList() {
-  const container = document.getElementById('statusList');
-  if (!container) return;
-  
-  container.innerHTML = statuses.map(s => `
-    <div class="status-card">
-      <div class="status-avatar-small">${escapeHtml(s.avatar)}</div>
-      <div class="status-info">
-        <div class="status-name">${escapeHtml(s.name)}</div>
-        <div class="status-text">${escapeHtml(s.text)}</div>
-        <div class="status-time">${escapeHtml(s.time)}</div>
-      </div>
-    </div>
-  `).join('');
+document.getElementById('infoMuteRow').addEventListener('click', () => {
+  const c = chats.find(x=>x.id===activeChatId);
+  if(!c) return;
+  c.muted=!c.muted;
+  setTog('infoMuteTog', c.muted);
+  renderChats();
+});
+document.getElementById('infoBlockRow').addEventListener('click', async () => {
+  const c = chats.find(x=>x.id===activeChatId);
+  if(!c||!uid) return;
+  const snap = await db.ref('users/'+uid+'/blocked/'+c.uid).once('value');
+  if(snap.val()){
+    await db.ref('users/'+uid+'/blocked/'+c.uid).remove();
+    document.getElementById('infoBlockLbl').textContent='Block Contact';
+    alert(c.name+' unblocked.');
+  } else {
+    if(confirm('Block '+c.name+'?')){
+      await db.ref('users/'+uid+'/blocked/'+c.uid).set(true);
+      document.getElementById('infoBlockLbl').textContent='Unblock Contact';
+      alert(c.name+' blocked.');
+    }
+  }
+});
+document.getElementById('infoClearRow').addEventListener('click', () => {
+  const c = chats.find(x=>x.id===activeChatId);
+  if(!c) return;
+  if(confirm('Clear all messages with '+c.name+'?')){
+    db.ref('chats/'+activeChatId+'/messages').remove();
+    db.ref('chats/'+activeChatId+'/lastMessage').remove();
+    document.getElementById('msgs').innerHTML='<div class="divider"><span>Today</span></div><div data-empty style="text-align:center;padding:20px;color:var(--muted)">No messages yet</div>';
+    go('sChat');
+  }
+});
+
+// ── CHAT MENU ──
+document.getElementById('chatMenu').addEventListener('click', e => { e.stopPropagation(); document.getElementById('chatDrop').classList.toggle('show'); });
+document.addEventListener('click', () => { document.getElementById('chatDrop').classList.remove('show'); document.getElementById('mainDrop').classList.remove('show'); });
+document.getElementById('cdInfo').addEventListener('click', () => { document.getElementById('chatDrop').classList.remove('show'); openInfo(activeChatId); });
+document.getElementById('cdMute').addEventListener('click', () => {
+  document.getElementById('chatDrop').classList.remove('show');
+  const c=chats.find(x=>x.id===activeChatId); if(!c) return;
+  c.muted=!c.muted; renderChats(); alert(c.muted?'Muted':'Unmuted');
+});
+document.getElementById('cdBlock').addEventListener('click', () => {
+  document.getElementById('chatDrop').classList.remove('show');
+  const c=chats.find(x=>x.id===activeChatId); if(!c||!uid) return;
+  if(confirm('Block '+c.name+'?')){ db.ref('users/'+uid+'/blocked/'+c.uid).set(true); alert(c.name+' blocked.'); }
+});
+document.getElementById('cdStatus').addEventListener('click', () => { document.getElementById('chatDrop').classList.remove('show'); go('sUpdates'); });
+
+// ── DELETE SHEET ──
+function showDeleteSheet(cid) {
+  const c=chats.find(x=>x.id===cid); if(!c) return;
+  deleteTargetId=cid;
+  document.getElementById('deleteSheetName').textContent=c.name;
+  document.getElementById('deleteSheet').classList.add('show');
+  document.getElementById('ov').classList.add('show');
+}
+document.getElementById('deleteConfirm').addEventListener('click', () => {
+  if(!deleteTargetId) return;
+  chats=chats.filter(c=>c.id!==deleteTargetId);
+  db.ref('chats/'+deleteTargetId+'/messages').remove();
+  db.ref('chats/'+deleteTargetId+'/lastMessage').remove();
+  renderChats();
+  document.getElementById('deleteSheet').classList.remove('show');
+  document.getElementById('ov').classList.remove('show');
+  deleteTargetId=null;
+});
+document.getElementById('deleteCancel').addEventListener('click', () => {
+  document.getElementById('deleteSheet').classList.remove('show');
+  document.getElementById('ov').classList.remove('show');
+  deleteTargetId=null;
+});
+
+// ── STATUS ──
+document.getElementById('myStatusCard').addEventListener('click', () => {
+  document.getElementById('statusModal').classList.add('show');
+  document.getElementById('ov').classList.add('show');
+});
+document.getElementById('statusCancel').addEventListener('click', () => {
+  document.getElementById('statusModal').classList.remove('show');
+  document.getElementById('ov').classList.remove('show');
+});
+document.getElementById('statusPost').addEventListener('click', () => {
+  const text=document.getElementById('statusInput').value.trim(); if(!text) return;
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  db.ref('statuses').push({name:S.username,text,time:t,av:S.emoji||S.username.charAt(0).toUpperCase(),uid,ts:Date.now()});
+  document.getElementById('statusModal').classList.remove('show');
+  document.getElementById('ov').classList.remove('show');
+  document.getElementById('statusInput').value='';
+});
+function loadStatuses() {
+  db.ref('statuses').on('value', snap => {
+    statuses=[];
+    snap.forEach(c=>statuses.unshift(c.val()));
+    renderStatuses();
+  });
+}
+function renderStatuses() {
+  const el=document.getElementById('statusList');
+  el.innerHTML=statuses.length?statuses.map(s=>`<div class="status-card"><div class="av av-sm">${s.av}</div><div class="sc-info"><div class="sc-name">${s.name}</div><div class="sc-text">${s.text}</div><div class="sc-time">${s.time}</div></div></div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--muted)">No statuses yet</div>';
 }
 
-function addStatus() {
-  const text = document.getElementById('statusInput').value.trim();
-  if (!text) return;
-  const username = localStorage.getItem('justus_username') || 'Alex J.';
-  statuses.unshift({ name: username, text: text, time: 'Just now', avatar: username.charAt(0) });
-  localStorage.setItem('justus_statuses', JSON.stringify(statuses));
-  renderStatusList();
-  document.getElementById('statusModal').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-  document.getElementById('statusInput').value = '';
-  alert('Status posted!');
+// ── CALLS ──
+function loadCalls() {
+  db.ref('calls/'+uid).limitToLast(20).on('value', snap => {
+    calls=[];
+    snap.forEach(c=>calls.unshift(c.val()));
+    renderCalls();
+  });
 }
-
-function renderCallList() {
-  const container = document.getElementById('callList');
-  if (!container) return;
-  
-  container.innerHTML = calls.map(c => `
-    <div class="call-item">
-      <div class="call-avatar">${escapeHtml(c.avatar)}</div>
-      <div class="call-info">
-        <div class="call-name">${escapeHtml(c.name)}</div>
-        <div class="call-type">${escapeHtml(c.type)}</div>
-        <div class="status-time">${escapeHtml(c.time)}</div>
-      </div>
-      <button class="call-btn" data-name="${escapeHtml(c.name)}">📞</button>
-    </div>
-  `).join('');
-  
-  document.querySelectorAll('.call-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const name = btn.dataset.name;
-      calls.unshift({ name: name, type: 'Outgoing', time: 'Just now', avatar: name.charAt(0) });
-      localStorage.setItem('justus_calls', JSON.stringify(calls.slice(0, 20)));
-      renderCallList();
-      alert(`Calling ${name}...`);
+function renderCalls() {
+  const el=document.getElementById('callList');
+  el.innerHTML=calls.length?calls.map(c=>`<div class="call-card"><div class="av av-sm">${c.av}</div><div class="sc-info"><div class="sc-name">${c.name}</div><div class="sc-text">${c.type}</div><div class="sc-time">${c.time}</div></div><button class="call-btn" data-name="${c.name}" data-av="${c.av}">📞</button></div>`).join(''):'<div style="padding:30px;text-align:center;color:var(--muted)">No calls yet</div>';
+  document.querySelectorAll('.call-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      db.ref('calls/'+uid).push({name:btn.dataset.name,av:btn.dataset.av,type:'Outgoing',time:t,ts:Date.now()});
+      if(S.vibrate&&navigator.vibrate) navigator.vibrate([200,100,200]);
+      alert('Calling '+btn.dataset.name+'...');
     });
   });
 }
 
-function saveSettings() {
-  const theme = document.getElementById('themeSelect').value;
-  const username = document.getElementById('usernameInput').value;
-  localStorage.setItem('justus_theme', theme);
-  localStorage.setItem('justus_username', username);
-  document.body.className = theme;
-  alert('Settings saved!');
-}
+// ── MAIN MENU ──
+document.getElementById('mainMenu').addEventListener('click', e=>{e.stopPropagation();document.getElementById('mainDrop').classList.toggle('show');});
+document.getElementById('goSettings').addEventListener('click', ()=>{document.getElementById('mainDrop').classList.remove('show');go('sSettings');});
+document.getElementById('goHelp').addEventListener('click', ()=>{document.getElementById('mainDrop').classList.remove('show');go('sHelp');});
+document.getElementById('goInvite').addEventListener('click', ()=>{document.getElementById('mainDrop').classList.remove('show');navigator.clipboard?.writeText('justus14-newapp.netlify.app');alert('Link copied: justus14-newapp.netlify.app');});
 
-function showScreen(screen) {
-  const screens = document.querySelectorAll('.screen-chats, .screen-chat, .screen-updates, .screen-communities, .screen-calls, .screen-settings, .screen-profile, .screen-help');
-  screens.forEach(s => s.classList.remove('show'));
-  
-  const targetScreen = document.getElementById(`screen${screen.charAt(0).toUpperCase() + screen.slice(1)}`);
-  if (targetScreen) targetScreen.classList.add('show');
-  
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('active');
-    if (item.dataset.screen === screen) item.classList.add('active');
+// ── BACK BUTTONS ──
+document.getElementById('chatBack').addEventListener('click', ()=>history.back());
+document.getElementById('infoBack').addEventListener('click', ()=>history.back());
+document.getElementById('settBack').addEventListener('click', ()=>history.back());
+document.getElementById('accBack').addEventListener('click', ()=>history.back());
+document.getElementById('privBack').addEventListener('click', ()=>history.back());
+document.getElementById('csBack').addEventListener('click', ()=>history.back());
+document.getElementById('notifBack').addEventListener('click', ()=>history.back());
+document.getElementById('storBack').addEventListener('click', ()=>history.back());
+document.getElementById('helpBack').addEventListener('click', ()=>history.back());
+
+// ── SETTINGS NAV ──
+document.getElementById('goAccount').addEventListener('click', ()=>go('sAccount'));
+document.getElementById('goPrivacy').addEventListener('click', ()=>go('sPrivacy'));
+document.getElementById('goChats').addEventListener('click', ()=>go('sChatsSettings'));
+document.getElementById('goNotifs').addEventListener('click', ()=>go('sNotifs'));
+document.getElementById('goStorage').addEventListener('click', ()=>go('sStorage'));
+document.getElementById('sInvite').addEventListener('click', ()=>{navigator.clipboard?.writeText('justus14-newapp.netlify.app');alert('Link copied!');});
+document.getElementById('sHelp').addEventListener('click', ()=>go('sHelp'));
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  if(!confirm('Log out?')) return;
+  if(uid) db.ref('users/'+uid+'/online').set(false);
+  if(msgListener){db.ref('chats/'+msgListener+'/messages').off();msgListener=null;}
+  db.ref('users').off(); db.ref('statuses').off();
+  auth.signOut();
+});
+
+// ── THEME & LANG ──
+document.getElementById('themeSelect').addEventListener('change', e=>{S.theme=e.target.value;document.body.className=S.theme;saveS();});
+document.getElementById('langSelect').addEventListener('change', e=>{S.lang=e.target.value;saveS();});
+
+// ── ACCOUNT ──
+document.getElementById('accAv').addEventListener('click', ()=>document.getElementById('emojiRow').classList.toggle('show'));
+document.querySelectorAll('.em').forEach(em=>{
+  em.addEventListener('click',()=>{
+    S.emoji=em.textContent;
+    document.getElementById('accAv').textContent=S.emoji;
+    document.getElementById('emojiRow').classList.remove('show');
+    if(uid) db.ref('users/'+uid+'/avatar').set(S.emoji);
   });
-  
-  if (screen === 'updates') renderStatusList();
-  if (screen === 'calls') renderCallList();
+});
+document.getElementById('accSave').addEventListener('click', ()=>{
+  const n=document.getElementById('accName').value.trim();
+  const a=document.getElementById('accAbout').value.trim();
+  if(n){S.username=n;if(uid)db.ref('users/'+uid+'/name').set(n);}
+  if(a){S.about=a;if(uid)db.ref('users/'+uid+'/about').set(a);}
+  saveS(); applySettings(); history.back();
+});
+
+// ── PRIVACY ──
+document.getElementById('rrTog').addEventListener('click',()=>{S.readReceipts=!S.readReceipts;setTog('rrTog',S.readReceipts);saveS();});
+document.getElementById('osTog').addEventListener('click',()=>{S.onlineStatus=!S.onlineStatus;setTog('osTog',S.onlineStatus);if(uid)db.ref('users/'+uid+'/online').set(S.onlineStatus);saveS();});
+document.querySelectorAll('.r-opt').forEach(o=>{
+  o.addEventListener('click',()=>{S[o.dataset.g]=o.dataset.v;setRadio(o.dataset.g,o.dataset.v);saveS();});
+});
+
+// ── CHATS SETTINGS ──
+document.querySelectorAll('#wallSwatches .sw').forEach(s=>{s.addEventListener('click',()=>{S.wall=s.dataset.v;document.documentElement.style.setProperty('--wall',S.wall);setSwatches('wallSwatches',S.wall);saveS();});});
+document.querySelectorAll('#bubSwatches .sw').forEach(s=>{s.addEventListener('click',()=>{S.bubble=s.dataset.v;document.documentElement.style.setProperty('--sent',S.bubble);setSwatches('bubSwatches',S.bubble);saveS();});});
+document.querySelectorAll('.font-btn').forEach(b=>{b.addEventListener('click',()=>{S.fontSize=b.dataset.v;document.documentElement.style.setProperty('--fs',S.fontSize);document.querySelectorAll('.font-btn').forEach(x=>x.classList.toggle('on',x===b));saveS();});});
+document.getElementById('etsTog').addEventListener('click',()=>{S.enterToSend=!S.enterToSend;setTog('etsTog',S.enterToSend);saveS();});
+
+// ── NOTIFICATIONS ──
+document.getElementById('nTog').addEventListener('click',()=>{
+  if(!S.notif&&'Notification'in window){Notification.requestPermission().then(p=>{S.notif=p==='granted';setTog('nTog',S.notif);saveS();});}
+  else{S.notif=!S.notif;setTog('nTog',S.notif);saveS();}
+});
+document.getElementById('sTog').addEventListener('click',()=>{S.sound=!S.sound;setTog('sTog',S.sound);saveS();});
+document.getElementById('vTog').addEventListener('click',()=>{S.vibrate=!S.vibrate;setTog('vTog',S.vibrate);saveS();if(S.vibrate&&navigator.vibrate)navigator.vibrate(200);});
+document.getElementById('pTog').addEventListener('click',()=>{S.preview=!S.preview;setTog('pTog',S.preview);saveS();});
+document.getElementById('testNotif').addEventListener('click',()=>{
+  if('Notification'in window&&Notification.permission==='granted'){new Notification('JUSTUS',{body:S.preview?'Test notification 👋':'New message'});}
+  else alert('Enable notifications first.');
+  if(S.vibrate&&navigator.vibrate)navigator.vibrate([100,50,100]);
+  if(S.sound)ping();
+});
+
+// ── STORAGE ──
+document.getElementById('adTog').addEventListener('click',()=>{S.autoDownload=!S.autoDownload;setTog('adTog',S.autoDownload);saveS();});
+document.getElementById('dsTog').addEventListener('click',()=>{S.dataSaver=!S.dataSaver;setTog('dsTog',S.dataSaver);saveS();});
+document.getElementById('clearCache').addEventListener('click',()=>{if(confirm('Clear cache?')){if(uid)localStorage.removeItem('justus_s_'+uid);renderStorage();alert('Done!');}});
+document.getElementById('clearAll').addEventListener('click',()=>{if(confirm('Clear ALL data?')){localStorage.clear();location.reload();}});
+function renderStorage(){
+  const sz=JSON.stringify(localStorage).length;
+  const kb=(sz/1024).toFixed(1);
+  const pct=Math.min((sz/51200)*100,100);
+  document.getElementById('storUsed').textContent=kb+' KB used';
+  document.getElementById('storBar').style.width=pct+'%';
+  document.getElementById('storMsgs').textContent='Chats: '+chats.length+' • Statuses: '+statuses.length;
 }
 
-// Event listeners
-document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
-document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') { 
-    e.preventDefault(); 
-    sendMessage(); 
-  }
-});
-document.getElementById('chatBackBtn')?.addEventListener('click', () => showScreen('chats'));
-document.getElementById('profileBackBtn')?.addEventListener('click', () => showScreen('chats'));
-document.getElementById('settingsBackBtn')?.addEventListener('click', () => showScreen('chats'));
-document.getElementById('helpBackBtn')?.addEventListener('click', () => showScreen('chats'));
-document.getElementById('muteItem')?.addEventListener('click', toggleMute);
-document.getElementById('clearChatItem')?.addEventListener('click', clearChat);
-document.getElementById('openStatusBtn')?.addEventListener('click', () => {
-  document.getElementById('statusModal')?.classList.add('open');
-  document.getElementById('overlay')?.classList.add('show');
-});
-document.getElementById('cancelStatusBtn')?.addEventListener('click', () => {
-  document.getElementById('statusModal')?.classList.remove('open');
-  document.getElementById('overlay')?.classList.remove('show');
-});
-document.getElementById('postStatusBtn')?.addEventListener('click', addStatus);
-document.getElementById('saveSettingsBtn')?.addEventListener('click', saveSettings);
-document.getElementById('overlay')?.addEventListener('click', () => {
-  document.getElementById('statusModal')?.classList.remove('open');
-  document.getElementById('overlay')?.classList.remove('show');
-});
-
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => showScreen(item.dataset.screen));
-});
-
-// Menu dropdown
-const menuBtn = document.getElementById('menuBtn');
-const dropdown = document.getElementById('dropdownMenu');
-if (menuBtn && dropdown) {
-  menuBtn.addEventListener('click', (e) => { 
-    e.stopPropagation(); 
-    dropdown.classList.toggle('show'); 
-  });
-  document.addEventListener('click', () => dropdown.classList.remove('show'));
-}
-document.getElementById('menuSettings')?.addEventListener('click', () => { 
-  dropdown?.classList.remove('show'); 
-  showScreen('settings'); 
-});
-document.getElementById('menuHelp')?.addEventListener('click', () => { 
-  dropdown?.classList.remove('show'); 
-  showScreen('help'); 
-});
-document.getElementById('menuInvite')?.addEventListener('click', () => { 
-  dropdown?.classList.remove('show'); 
-  alert('Invite code: JUSTUS2024'); 
-});
-
-// Initialize
-loadData();
-renderChatList();
-renderStatusList();
-renderCallList();
-showScreen('chats');
+// ── INIT ──
+history.pushState({id:'sLogin'},'','');
+applySettings();
 </script>
 </body>
 </html>
