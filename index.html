@@ -19,13 +19,15 @@ body {
   --text-primary: #111111;
   --text-secondary: #666666;
   --text-muted: #999999;
-  --border: #e0e0e0;
-  --accent: #888888;
-  --accent-dark: #666666;
+  --border: #e8e8e8;
+  --accent: #25D366;
+  --accent-dark: #075E54;
   --sent-msg: #DCF8C6;
   --received-msg: #ffffff;
   --header-bg: #075E54;
   --header-text: white;
+  --avatar-gradient-start: #25D366;
+  --avatar-gradient-end: #075E54;
 }
 
 body.dark {
@@ -36,10 +38,12 @@ body.dark {
   --text-secondary: #bbbbbb;
   --text-muted: #888888;
   --border: #444444;
-  --accent: #888888;
+  --accent: #25D366;
   --sent-msg: #075E54;
   --received-msg: #2a2a2a;
   --header-bg: #111111;
+  --avatar-gradient-start: #25D366;
+  --avatar-gradient-end: #075E54;
 }
 
 body.oled {
@@ -50,10 +54,12 @@ body.oled {
   --text-secondary: #aaaaaa;
   --text-muted: #666666;
   --border: #222222;
-  --accent: #888888;
+  --accent: #25D366;
   --sent-msg: #075E54;
   --received-msg: #111111;
   --header-bg: #000000;
+  --avatar-gradient-start: #25D366;
+  --avatar-gradient-end: #075E54;
 }
 
 body {
@@ -160,7 +166,7 @@ body {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #888, #666);
+  background: linear-gradient(135deg, var(--avatar-gradient-start), var(--avatar-gradient-end));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,9 +191,10 @@ body {
   color: rgba(255,255,255,0.7);
 }
 
-/* Chat List */
+/* Chat List - WhatsApp Style */
 .chat-list {
   flex: 1;
+  background: var(--bg-primary);
 }
 
 .chat-item {
@@ -198,25 +205,41 @@ body {
   cursor: pointer;
   border-bottom: 1px solid var(--border);
   background: var(--bg-primary);
+  transition: background 0.2s;
+}
+
+.chat-item:hover {
+  background: var(--bg-secondary);
 }
 
 .chat-item:active {
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
 }
 
 .chat-avatar-img {
   width: 50px;
   height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--avatar-gradient-start), var(--avatar-gradient-end));
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 20px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
 }
 
 .chat-info {
   flex: 1;
+  min-width: 0;
 }
 
 .chat-name {
   font-weight: 600;
   font-size: 16px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 
 .chat-preview {
@@ -229,11 +252,15 @@ body {
 
 .chat-meta {
   text-align: right;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .chat-time {
   font-size: 10px;
   color: var(--text-muted);
+  margin-bottom: 4px;
+  white-space: nowrap;
 }
 
 .unread-badge {
@@ -248,7 +275,6 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0 5px;
-  margin-top: 4px;
 }
 
 /* Messages */
@@ -352,7 +378,7 @@ body {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #888, #666);
+  background: linear-gradient(135deg, var(--avatar-gradient-start), var(--avatar-gradient-end));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -466,7 +492,7 @@ body {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #888, #666);
+  background: linear-gradient(135deg, var(--avatar-gradient-start), var(--avatar-gradient-end));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -963,14 +989,14 @@ body {
 <script>
 // Chat data
 let chats = [
-  { id: 1, name: "Chiselda", avatar: "C", status: "Online", lastMessage: "Hey! How are you?", time: "21:16", unread: 2, muted: false },
+  { id: 1, name: "Lebogang", avatar: "L", status: "Online", lastMessage: "See you at 3pm today.", time: "12:45", unread: 2, muted: false },
   { id: 2, name: "Sarah Chen", avatar: "S", status: "Online", lastMessage: "Thanks for the update", time: "9:15 AM", unread: 0, muted: false },
   { id: 3, name: "Mike Johnson", avatar: "M", status: "Last seen yesterday", lastMessage: "Love the app! 😊", time: "Yesterday", unread: 0, muted: false },
   { id: 4, name: "Emily Davis", avatar: "E", status: "Online", lastMessage: "See you tomorrow", time: "Yesterday", unread: 1, muted: false }
 ];
 
 let messages = {
-  1: [{ text: "Hey! How are you?", sent: false, time: "21:10" }, { text: "I'm good!", sent: true, time: "21:12" }],
+  1: [{ text: "See you at 3pm today.", sent: false, time: "12:45" }],
   2: [{ text: "Thanks for the update", sent: false, time: "9:10 AM" }],
   3: [{ text: "Love the app! 😊", sent: false, time: "Yesterday" }],
   4: [{ text: "See you tomorrow", sent: false, time: "Yesterday" }]
@@ -982,7 +1008,7 @@ let statuses = [
 ];
 
 let calls = [
-  { name: "Chiselda", type: "Missed", time: "Yesterday", avatar: "C" },
+  { name: "Lebogang", type: "Missed", time: "Yesterday", avatar: "L" },
   { name: "Sarah Chen", type: "Incoming", time: "2 days ago", avatar: "S" }
 ];
 
